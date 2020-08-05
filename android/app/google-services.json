@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "753624766946",
+    "firebase_url": "https://marketers-reports.firebaseio.com",
+    "project_id": "marketers-reports",
+    "storage_bucket": "marketers-reports.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:753624766946:android:2998f4f0afb6e4787a41bb",
+        "android_client_info": {
+          "package_name": "com.example.marketers_reports"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "753624766946-jompfvi67qcghfgvt131t8snokrtjc7o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBVTTjKh0fqitdq5WFN7c5NVAAbMSWmspE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "753624766946-jompfvi67qcghfgvt131t8snokrtjc7o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
