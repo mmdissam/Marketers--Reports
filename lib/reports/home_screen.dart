@@ -20,6 +20,7 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _prepareData();
   }
+
   void _prepareData() {
     FirebaseAuth.instance.currentUser().then((user) {
       Firestore.instance
@@ -41,6 +42,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -52,7 +54,9 @@ class _HomeScreenState extends State<HomeScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: _isLoading ? _loading(context) : (_hasError ? _errorMessage(context, _error): Text(_name)),
+          title: _isLoading
+              ? _loading(context)
+              : (_hasError ? _errorMessage(context, _error) : Text(_name)),
           centerTitle: true,
         ),
         drawer: Drawer(
@@ -60,17 +64,17 @@ class _HomeScreenState extends State<HomeScreen> {
             child: ListTile(
               title: Text('LOGOUT'),
               trailing: Icon(Icons.exit_to_app),
-              onTap: ()async{
-                FirebaseAuth.instance.signOut().then((_){
+              onTap: () async {
+                FirebaseAuth.instance.signOut().then((_) {
                   Navigator.of(context).pop();
-                  Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context)=> LoginScreen() ));
+                  Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => LoginScreen()));
                 });
               },
             ),
           ),
         ),
         body: _content(context),
-
       ),
     );
   }
@@ -81,13 +85,17 @@ class _HomeScreenState extends State<HomeScreen> {
       child: _isLoading
           ? _loading(context)
           : (_hasError
-          ? _errorMessage(context, _error)
-          : _streamContent(context)),
+              ? _errorMessage(context, _error)
+              : _streamContent(context)),
     );
   }
+
   Widget _streamContent(BuildContext context) {
     return StreamBuilder(
-      stream: Firestore.instance.collection('reports').where('user_id',isEqualTo: _user).snapshots(),
+      stream: Firestore.instance
+          .collection('reports')
+          .where('user_id', isEqualTo: _user)
+          .snapshots(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
@@ -140,7 +148,4 @@ class _HomeScreenState extends State<HomeScreen> {
       child: CircularProgressIndicator(),
     );
   }
-
-
-
 }

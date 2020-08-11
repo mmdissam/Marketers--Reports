@@ -1,7 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:marketers_reports/reports/home_screen.dart';
+import 'package:marketers_reports/reports/admin_home.dart';
+
+import 'file:///C:/Users/NiMo-/AndroidStudioProjects/marketers_reports/lib/shared_ui/nav_menu.dart';
 
 import 'login.dart';
 
@@ -56,6 +58,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         title: Text('REGISTER'),
         centerTitle: true,
       ),
+      drawer: drawer(context),
       body: _isLoading ? _loading(context) : _form(context),
     );
   }
@@ -82,7 +85,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               _registerButton(context),
               SizedBox(height: 20),
               _errorMessage(context),
-              _rowHaveAccount(context),
             ],
           ),
         ),
@@ -165,23 +167,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget _rowHaveAccount(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Text('Have an account?'),
-        FlatButton(
-          onPressed: () {
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(builder: (context) => LoginScreen()),
-            );
-          },
-          child: Text('Login'),
-        ),
-      ],
-    );
-  }
-
   Widget _loading(BuildContext context) {
     return Center(
       child: CircularProgressIndicator(),
@@ -213,11 +198,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     //TODO:Connect with firebase
     registerUserInFirebase();
   }
-  void registerUserInFirebase(){
+
+  void registerUserInFirebase() {
     FirebaseAuth.instance
         .createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim())
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim())
         .then((authResult) {
       Firestore.instance.collection('profiles').document().setData({
         'name': _nameController.text.trim(),
@@ -227,8 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'user_id': authResult.user.uid,
       });
       Navigator.of(context)
-          .pushReplacement(
-          MaterialPageRoute(builder: (context) => HomeScreen()))
+          .pushReplacement(MaterialPageRoute(builder: (context) => AdminHome()))
           .catchError((error) {
         setState(() {
           _isLoading = false;

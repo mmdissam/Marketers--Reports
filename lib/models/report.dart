@@ -10,9 +10,7 @@ class Report {
   double total;
   double netProfit;
   double sellingPrice;
-
   String comments;
-
 
   Report(
       this.userId,
@@ -55,7 +53,7 @@ class Report {
       'deliveryPrice': this.deliveryPrice,
       'total': this.total,
       'netProfit': this.netProfit,
-      'sellingPrice' : this.sellingPrice,
+      'sellingPrice': this.sellingPrice,
       'comments': this.comments,
     };
   }

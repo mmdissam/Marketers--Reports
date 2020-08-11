@@ -1,14 +1,16 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:marketers_reports/auth/home_login.dart';
 import 'package:marketers_reports/reports/home_screen.dart';
 import 'package:marketers_reports/reports/new_report.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  Widget homeScreen = HomeScreen();
+  Widget homeScreen = HomeLogin();
   FirebaseUser user = await FirebaseAuth.instance.currentUser();
   if (user != null) {
-    homeScreen =  user.uid == '1ClqQn53gYZCXvQaZI3eahQDY9E2'?  NewReport() : HomeScreen();
+    homeScreen =
+        user.uid == '1ClqQn53gYZCXvQaZI3eahQDY9E2' ? NewReport() : HomeScreen();
   }
 
   runApp(MarketersReports(

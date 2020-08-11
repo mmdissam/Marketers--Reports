@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:marketers_reports/auth/register.dart';
+import 'package:marketers_reports/shared_ui/nav_menu.dart';
 
 class NewReport extends StatefulWidget {
   @override
@@ -70,7 +70,7 @@ class _NewReportState extends State<NewReport> {
         centerTitle: true,
         actions: <Widget>[],
       ),
-      drawer: _drawer(context),
+      drawer: drawer(context),
       floatingActionButton: FloatingActionButton(
         onPressed: _onAddReport,
         child: Icon(Icons.add),
@@ -115,7 +115,7 @@ class _NewReportState extends State<NewReport> {
                   _showNetProfit(context),
                 ],
               ),
-              ],
+            ],
           ),
         ),
       ),
@@ -143,20 +143,6 @@ class _NewReportState extends State<NewReport> {
     }
   }
 
-  Widget _drawer(context) {
-    return Drawer(
-      child: Center(
-        child: ListTile(
-            title: Text('REGISTER'),
-            trailing: Icon(Icons.add_box),
-            onTap: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => RegisterScreen()));
-            }),
-      ),
-    );
-  }
   Widget _historyField(BuildContext context) {
     return Card(
       child: Padding(
@@ -416,9 +402,7 @@ class _NewReportState extends State<NewReport> {
                   },
                   value: _selectedUser,
                   isExpanded: false,
-                  hint: Text(
-                      'Choose user'
-                  ),
+                  hint: Text('Choose user'),
                 ),
               ),
             );
@@ -428,14 +412,16 @@ class _NewReportState extends State<NewReport> {
       },
     );
   }
-Widget _errorMessage(BuildContext context, String message) {
-  return Center(
-    child: Text(
-      message,
-      style: TextStyle(color: Colors.red),
-    ),
-  );
-}
+
+  Widget _errorMessage(BuildContext context, String message) {
+    return Center(
+      child: Text(
+        message,
+        style: TextStyle(color: Colors.red),
+      ),
+    );
+  }
+
   void _storeDataInFirebase() {
     FirebaseAuth.instance.currentUser().then((user) {
       Firestore.instance.collection('reports').document().setData({
@@ -455,7 +441,6 @@ Widget _errorMessage(BuildContext context, String message) {
           MaterialPageRoute(builder: (context) => NewReport())));
     });
   }
-
 }
 
 /*
