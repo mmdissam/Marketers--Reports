@@ -202,7 +202,6 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = true;
       });
     }
-    //TODO:Connect with firebase
     await FirebaseAuth.instance
         .signInWithEmailAndPassword(
         email: _emailController.text.trim(),

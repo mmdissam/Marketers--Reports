@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:marketers_reports/reports/new_report.dart';
 
 import 'file:///C:/Users/NiMo-/AndroidStudioProjects/marketers_reports/lib/shared_ui/nav_menu.dart';
 
@@ -57,6 +58,12 @@ class _AdminHomeState extends State<AdminHome> {
                   : Text('ABO KINAN')),
           centerTitle: true,
         ),
+        floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => NewReport()));
+            },
+            child: Icon(Icons.add)),
         drawer: drawer(context),
         body: _content(context),
       ),

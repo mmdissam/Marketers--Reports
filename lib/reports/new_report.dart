@@ -24,6 +24,7 @@ class _NewReportState extends State<NewReport> {
   var _key = GlobalKey<FormState>();
   bool _autoValidation = false;
   bool _isLoading = false;
+  bool _isError =false;
 
   double _price = 1;
   double _quantity = 1;
@@ -73,7 +74,7 @@ class _NewReportState extends State<NewReport> {
       drawer: drawer(context),
       floatingActionButton: FloatingActionButton(
         onPressed: _onAddReport,
-        child: Icon(Icons.add),
+        child: Icon(Icons.save),
       ),
       body: _isLoading ? _loading(context) : _form(context),
     );
@@ -115,6 +116,8 @@ class _NewReportState extends State<NewReport> {
                   _showNetProfit(context),
                 ],
               ),
+              SizedBox(height: 20),
+             _isError ?  _errorMessage(context, 'Please select user'): Container(),
             ],
           ),
         ),
@@ -225,7 +228,7 @@ class _NewReportState extends State<NewReport> {
               _quantity = double.tryParse(value);
               setState(() {
                 _totalController.text =
-                    (_quantity * _price + _deliveryPrice).toString();
+                    (_quantity * _price ).toString();
                 _netProfitController.text = (_sellingPrice - _total).toString();
               });
             },
@@ -250,7 +253,7 @@ class _NewReportState extends State<NewReport> {
               _price = double.tryParse(value);
               setState(() {
                 _totalController.text =
-                    (_quantity * _price + _deliveryPrice).toString();
+                    (_quantity * _price ).toString();
                 _netProfitController.text = (_sellingPrice - _total).toString();
               });
             },
@@ -277,7 +280,7 @@ class _NewReportState extends State<NewReport> {
               _deliveryPrice = double.tryParse(value);
               setState(() {
                 _totalController.text =
-                    (_quantity * _price + _deliveryPrice).toString();
+                    (_quantity * _price ).toString();
                 _netProfitController.text = (_sellingPrice - _total).toString();
               });
             },
@@ -302,7 +305,7 @@ class _NewReportState extends State<NewReport> {
             onChanged: (value) {
               _sellingPrice = double.tryParse(value);
               setState(() {
-                _total = (_quantity * _price + _deliveryPrice);
+                _total = (_quantity * _price );
                 _netProfit = (_sellingPrice - _total);
               });
             },
@@ -423,66 +426,30 @@ class _NewReportState extends State<NewReport> {
   }
 
   void _storeDataInFirebase() {
-    FirebaseAuth.instance.currentUser().then((user) {
-      Firestore.instance.collection('reports').document().setData({
-        'user_id': _selectedUser,
-        'history': _historyController.text.trim(),
-        'clientName': _clientNameController.text.trim(),
-        'phone': _phoneController.text.trim(),
-        'productName': _productNameController.text.trim(),
-        'quantity': _quantityController.text.trim(),
-        'price': _priceController.text.trim(),
-        'deliveryPrice': _deliveryPriceController.text.trim(),
-        'total': _total,
-        'netProfit': _netProfit,
-        'sellingPrice': _sellingPrice,
-        'comments': _commentsController.text.trim(),
-      }).then((_) => Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => NewReport())));
-    });
+    if (_selectedUser == null) {
+      setState(() {
+        _isError = true;
+        _isLoading = false;
+      });
+    } else {
+      FirebaseAuth.instance.currentUser().then((user) {
+        Firestore.instance.collection('reports').document().setData({
+          'user_id': _selectedUser,
+          'history': _historyController.text.trim(),
+          'clientName': _clientNameController.text.trim(),
+          'phone': _phoneController.text.trim(),
+          'productName': _productNameController.text.trim(),
+          'quantity': _quantityController.text.trim(),
+          'price': _priceController.text.trim(),
+          'deliveryPrice': _deliveryPriceController.text.trim(),
+          'total': _total,
+          'netProfit': _netProfit,
+          'sellingPrice': _sellingPrice,
+          'comments': _commentsController.text.trim(),
+        }).then((_) =>
+            Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => NewReport())));
+      });
+    }
   }
 }
-
-/*
-* Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                Card(
-                  child: Container(
-                    width: MediaQuery.of(context).size.width *0.4,
-                    height: 40,
-                    alignment: Alignment.centerLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.only(left:8.0),
-                      child: Text('Total:$_total'),
-                    ),
-                  ),
-                ),
-                  Card(
-                    child: Container(
-                      width: MediaQuery.of(context).size.width *0.4,
-                      height: 40,
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left:8.0),
-                        child: Text('Net Profit:$_netProfit'),
-                      ),
-                    ),
-                  ),
-              ],),
-              SizedBox(height: 20),
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: TextFormField(
-                      controller: _commentsController,
-                      decoration: InputDecoration(hintText: 'Comments'),
-                      validator: (value) {
-                        if (value.isEmpty) {
-                          return 'Comments is required';
-                        }
-                        return null;
-                      }),
-                ),
-              ),
-*/

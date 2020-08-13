@@ -29,8 +29,9 @@ class MarketersReports extends StatelessWidget {
       title: 'Marketers Reports',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: Colors.amber,
-        accentColor: Colors.amber,
+        primaryColor: Colors.deepOrange,
+        accentColor: Colors.deepOrangeAccent,
+        primaryIconTheme: IconThemeData(color:Colors.white),
       ),
       home: home,
     );
