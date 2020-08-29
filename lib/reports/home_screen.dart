@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -17,15 +18,15 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   String _name;
   double total = 0;
+  DateTime _start = DateTime.now();
+  DateTime _end = DateTime.now();
 
-  List<double> postList  =[];
+  List<double> postList = [];
 
   @override
   void initState() {
     super.initState();
-    _prepareData().then((_) =>{
-      queryValues()
-    });
+    _prepareData();
   }
 
   Future<FirebaseUser> _prepareData() async {
@@ -33,9 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
       Firestore.instance
           .collection('profiles')
           .where('user_id', isEqualTo: user.uid)
-//          .where('date', isGreaterThanOrEqualTo: _start)
-//          .where('date', isLessThanOrEqualTo: _end)
-          .orderBy('date')
           .getDocuments()
           .then((snapshotQuery) {
         setState(() {
@@ -59,16 +57,34 @@ class _HomeScreenState extends State<HomeScreen> {
   void queryValues() {
     FirebaseAuth.instance.currentUser().then((user) {
       Firestore.instance
-          .collection('reports').where('user_id', isEqualTo: user.uid)
+          .collection('reports')
+          .where('user_id', isEqualTo: user.uid)
+          .where('history', isGreaterThanOrEqualTo: _start)
+          .where('history', isLessThanOrEqualTo: _end)
           .snapshots()
           .listen((snapshot) {
-        double tempTotal = snapshot.documents.fold(
-            0, (tot, doc) => tot + doc.data['total']);
+        double tempTotal =
+            snapshot.documents.fold(0, (tot, doc) => tot + doc.data['total']);
         setState(() {
           total = tempTotal;
         });
       });
     });
+  }
+
+  Future displayDateRange(BuildContext context) async {
+    final List<DateTime> picked = await DateRagePicker.showDatePicker(
+        context: context,
+        initialFirstDate: _start,
+        initialLastDate: _end,
+        firstDate: new DateTime(2015),
+        lastDate: new DateTime(2030));
+    if (picked != null && picked.length == 2) {
+      setState(() {
+        _start = picked[0];
+        _end = picked[1].add(Duration(days: 1));
+      });
+    }
   }
 
   @override
@@ -86,12 +102,31 @@ class _HomeScreenState extends State<HomeScreen> {
               ? _loading(context)
               : (_hasError ? _errorMessage(context, _error) : Text(_name)),
           centerTitle: true,
+          actions: <Widget>[
+            Center(
+              child: FlatButton.icon(
+                icon: Icon(Icons.search,color: Colors.white),
+                label: Text('بحث',style: TextStyle(color: Colors.white)),
+                onPressed: () async {
+                  await displayDateRange(context);
+                  queryValues();
+                },
+              ),
+            ),
+          ],
         ),
         drawer: Drawer(
           child: Center(
             child: ListTile(
-              title: Text('LOGOUT'),
-              trailing: Icon(Icons.exit_to_app),
+              title: Text(
+                'تسجيل خروج',
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              trailing: Icon(Icons.exit_to_app, size: 30),
               onTap: () async {
                 FirebaseAuth.instance.signOut().then((_) {
                   Navigator.of(context).pop();
@@ -112,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ? _loading(context)
         : (_hasError
             ? _errorMessage(context, _error)
-            : _streamContent(context));
+            :  _streamContent(context));
   }
 
   Widget _streamContent(BuildContext context) {
@@ -120,11 +155,14 @@ class _HomeScreenState extends State<HomeScreen> {
       stream: Firestore.instance
           .collection('reports')
           .where('user_id', isEqualTo: _user.uid)
+          .where('history', isGreaterThanOrEqualTo: _start)
+          .where('history', isLessThanOrEqualTo: _end)
+          .orderBy('history',descending: true)
           .snapshots(),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
-            return _errorMessage(context, 'No connection is made');
+            return _errorMessage(context, 'لا يوجد اتصال');
             break;
           case ConnectionState.waiting:
             return Center(child: CircularProgressIndicator());
@@ -134,7 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
             if (snapshot.hasError) {
               return _errorMessage(context, snapshot.error.toString());
             } else if (!snapshot.hasData) {
-              return _errorMessage(context, 'No Data');
+              return _errorMessage(context, 'لا يوجد بيانات');
             }
             return _drawScreen(context, snapshot.data);
             break;
@@ -165,42 +203,42 @@ class _HomeScreenState extends State<HomeScreen> {
             children: <Widget>[
               Card(
                 child: Container(
-                  height: 80,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+                  height: 90,
                   decoration:
                       BoxDecoration(border: Border.all(color: Colors.black)),
                   child: ListView(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
                     scrollDirection: Axis.horizontal,
                     children: <Widget>[
-                      _columnOfReport(context, 'Date',
+                      _columnOfReport(context, 'التاريخ',
                           DateFormat('yyyy-MM-dd').format(dateTime)),
                       _dividing(context),
-                      _columnOfReport(context, 'Client Name',
+                      _columnOfReport(context, 'اسم الزبون',
                           data.documents[position]['clientName']),
                       _dividing(context),
                       _columnOfReport(
-                          context, 'Phone', data.documents[position]['phone']),
+                          context, 'الهاتف', data.documents[position]['phone']),
                       _dividing(context),
-                      _columnOfReport(context, 'Product Name',
+                      _columnOfReport(context, 'اسم الصنف',
                           data.documents[position]['productName']),
                       _dividing(context),
-                      _columnOfReport(context, 'Quantity',
+                      _columnOfReport(context, 'الكمية',
                           data.documents[position]['quantity']),
                       _dividing(context),
                       _columnOfReport(
-                          context, 'Price', data.documents[position]['price']),
+                          context, 'السعر', data.documents[position]['price']),
                       _dividing(context),
-                      _columnOfReport(context, 'Delivery Price',
+                      _columnOfReport(context, 'التوصيل',
                           data.documents[position]['deliveryPrice']),
                       _dividing(context),
-                      _columnOfReport(context, 'Total',
+                      _columnOfReport(context, 'المجموع',
                           '${data.documents[position]['total']}'),
                       _dividing(context),
-                      _columnOfReport(context, 'Net Profit',
+                      _columnOfReport(context, 'ربح المسوّق',
                           '${data.documents[position]['netProfit']}'),
                       _dividing(context),
-                      _columnOfReport(context, 'Comment',
+                      _columnOfReport(context, 'تقرير',
                           data.documents[position]['comments']),
                     ],
                   ),
@@ -269,12 +307,11 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: <Widget>[
-            _columnOfReport(
-                context, 'Number of operations', numOfReport.toString()),
+            _columnOfReport(context, 'عدد العمليات', numOfReport.toString()),
             _dividing(context),
-            _columnOfReport(
-                context, 'Total Earnings', total.toString()),
+            _columnOfReport(context, 'إجمالي ربح المسوّق', total.toString()),
           ],
         ),
       ),
