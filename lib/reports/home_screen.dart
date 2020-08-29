@@ -17,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoading = true;
   String _name;
   double total = 0;
+
   List<double> postList  =[];
 
   @override
@@ -32,6 +33,9 @@ class _HomeScreenState extends State<HomeScreen> {
       Firestore.instance
           .collection('profiles')
           .where('user_id', isEqualTo: user.uid)
+//          .where('date', isGreaterThanOrEqualTo: _start)
+//          .where('date', isLessThanOrEqualTo: _end)
+          .orderBy('date')
           .getDocuments()
           .then((snapshotQuery) {
         setState(() {

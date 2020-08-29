@@ -88,44 +88,48 @@ class _NewReportState extends State<NewReport> {
     return SingleChildScrollView(
       child: Padding(
         padding: EdgeInsets.all(25),
-        child: Form(
-          autovalidate: _autoValidation,
-          key: _key,
-          child: Column(
-            children: <Widget>[
-              _dropDownButton(context),
-              _historyField(context),
-              SizedBox(height: 20),
-              _clientNameField(context),
-              SizedBox(height: 20),
-              _phoneField(context),
-              SizedBox(height: 20),
-              _productNameField(context),
-              SizedBox(height: 20),
-              _quantityField(context),
-              SizedBox(height: 20),
-              _priceField(context),
-              SizedBox(height: 20),
-              _deliveryPriceField(context),
-              SizedBox(height: 20),
-              _sellingPriceField(context),
-              SizedBox(height: 20),
-              _commentsField(context),
-              SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        child: Column(
+          children: <Widget>[
+            _dropDownButton(context),
+            Form(
+              autovalidate: _autoValidation,
+              key: _key,
+              child: Column(
                 children: <Widget>[
-                  _showTotal(context),
-                  SizedBox(width: 5),
-                  _showNetProfit(context),
+                  _historyField(context),
+                  SizedBox(height: 20),
+                  _clientNameField(context),
+                  SizedBox(height: 20),
+                  _phoneField(context),
+                  SizedBox(height: 20),
+                  _productNameField(context),
+                  SizedBox(height: 20),
+                  _quantityField(context),
+                  SizedBox(height: 20),
+                  _priceField(context),
+                  SizedBox(height: 20),
+                  _deliveryPriceField(context),
+                  SizedBox(height: 20),
+                  _sellingPriceField(context),
+                  SizedBox(height: 20),
+                  _commentsField(context),
+                  SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      _showTotal(context),
+                      SizedBox(width: 5),
+                      _showNetProfit(context),
+                    ],
+                  ),
+                  SizedBox(height: 20),
+                  _isError
+                      ? _errorMessage(context, 'الرجاء إدخال اسم المسوّق')
+                      : Container(),
                 ],
               ),
-              SizedBox(height: 20),
-              _isError
-                  ? _errorMessage(context, 'الرجاء إدخال اسم المسوّق')
-                  : Container(),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -197,12 +201,8 @@ class _NewReportState extends State<NewReport> {
         child: TextFormField(
             controller: _clientNameController,
             decoration: InputDecoration(hintText: 'اسم الزبون'),
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'اسم الزبون مطلوب';
-              }
-              return null;
-            }),
+            validator: validateNames,
+        ),
       ),
     );
   }
@@ -228,12 +228,8 @@ class _NewReportState extends State<NewReport> {
         child: TextFormField(
             controller: _productNameController,
             decoration: InputDecoration(hintText: 'اسم الصنف'),
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'اسم الصنف مطلوب';
-              }
-              return null;
-            }),
+            validator: validateNames,
+        ),
       ),
     );
   }
@@ -253,12 +249,7 @@ class _NewReportState extends State<NewReport> {
                 _netProfitController.text = (_sellingPrice - _total).toString();
               });
             },
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'الكمية مطلوبة';
-              }
-              return null;
-            }),
+            validator: validatePrices),
       ),
     );
   }
@@ -278,12 +269,8 @@ class _NewReportState extends State<NewReport> {
               });
             },
             keyboardType: TextInputType.number,
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'السعر مطلوب';
-              }
-              return null;
-            }),
+            validator: validatePrices
+        ),
       ),
     );
   }
@@ -303,12 +290,8 @@ class _NewReportState extends State<NewReport> {
                 _netProfitController.text = (_sellingPrice - _total).toString();
               });
             },
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'التوصيل مطلوب';
-              }
-              return null;
-            }),
+            validator: validatePrices,
+        ),
       ),
     );
   }
@@ -328,12 +311,7 @@ class _NewReportState extends State<NewReport> {
                 _netProfit = (_sellingPrice - _total);
               });
             },
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'التحصيل مطلوب';
-              }
-              return null;
-            }),
+            validator: validatePrices,),
       ),
     );
   }
@@ -358,9 +336,10 @@ class _NewReportState extends State<NewReport> {
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 5),
-            child: Text('السعر الكلّي بالجملة'),
+            child: Text('السعر الكلّي بالجملة',style: TextStyle(fontWeight: FontWeight.bold),),
           ),
           Card(
+            color: Colors.red.shade300,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal:55, vertical: 15),
               child: Text(_total.toString()),
@@ -379,9 +358,10 @@ class _NewReportState extends State<NewReport> {
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 5),
-            child: Text('ربح المسوّق'),
+            child: Text('ربح المسوّق',style: TextStyle(fontWeight: FontWeight.bold),),
           ),
           Card(
+            color: Colors.green.shade300,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 55, vertical: 15),
               child: Text(_netProfit.toString()),
@@ -455,6 +435,39 @@ class _NewReportState extends State<NewReport> {
         style: TextStyle(color: Colors.red),
       ),
     );
+  }
+  String validatePhone(String value) {
+    String pattern = r'(^[0-9]*$)';
+    RegExp regExp = new RegExp(pattern);
+    if (value.trim().isEmpty) {
+      return null;
+    }
+    else if (value.replaceAll(" ", "").length != 10) {
+      return 'يجيب أن يكون الهاتف من 10 أرقام';
+    } else if (!regExp.hasMatch(value.replaceAll(" ", ""))) {
+      return 'يجب أن يكون رقم الهاتف من أرقام فقط';
+    }
+    return null;
+  }
+  String validateNames(String value) {
+    String pattern = r'(^[أ-ي]+$)';
+    RegExp regExp = new RegExp(pattern);
+    if (value.trim().isEmpty) {
+      return _required;
+    } else if (!regExp.hasMatch(value.replaceAll(" ", ""))) {
+      return 'يجب أن يكون الإسم من الأحرف فقط';
+    }
+    return null;
+  }
+  String validatePrices(String value) {
+    String pattern = r'(^[0-9]*$)';
+    RegExp regExp = new RegExp(pattern);
+    if (value.trim().isEmpty) {
+      return _required;
+    } else if (!regExp.hasMatch(value.trim())) {
+      return 'يجب أن يكون من الأرقام فقط';
+    }
+    return null;
   }
 
   void _storeDataInFirebase() {
