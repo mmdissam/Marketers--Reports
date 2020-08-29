@@ -25,7 +25,8 @@ dependencies:
   animated_button:
   drawerbehavior: ^1.1.2
   form_field_validator: ^1.0.1
-
+  intl: ^0.16.1
+  google_fonts: ^1.1.0
 
 dev_dependencies:
   flutter_test:

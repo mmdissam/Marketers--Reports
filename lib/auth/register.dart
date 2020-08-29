@@ -29,6 +29,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       borderRadius: BorderRadius.circular(16),
       borderSide: BorderSide(color: Colors.transparent));
 
+  String _required = 'مطلوب**';
+
 //  String test = 'Name is required';
 
   @override
@@ -43,14 +45,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    double height = MediaQuery
-        .of(context)
-        .size
-        .height;
-    double width = MediaQuery
-        .of(context)
-        .size
-        .width;
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
     return GestureDetector(
       onTap: () {
         FocusScopeNode currentFocus = FocusScope.of(context);
@@ -72,7 +68,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         elevation: 0,
         centerTitle: true,
         title: Text(
-          'Create account',
+          'حساب جديد',
           style: TextStyle(color: Colors.white, fontSize: 25),
         ),
       ),
@@ -123,7 +119,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return TextFormField(
         controller: _nameController,
         decoration: InputDecoration(
-            hintText: 'Enter your name',
+            hintText: 'اسم المسوّق',
             filled: true,
             fillColor: Colors.black12,
             focusedBorder: _outlineInputBorder,
@@ -136,7 +132,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
             fontSize: 16),
         validator: (value) {
           if (value.isEmpty) {
-            return 'Name is required';
+            return _required;
           }
           return null;
         });
@@ -147,7 +143,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       controller: _emailController,
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
-        hintText: 'Enter your email',
+        hintText: 'الإيميل',
         filled: true,
         fillColor: Colors.black12,
         focusedBorder: _outlineInputBorder,
@@ -173,7 +169,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         keyboardType: TextInputType.visiblePassword,
         validator: validatePassword,
         decoration: InputDecoration(
-            hintText: 'Enter your password',
+            hintText: 'كلمة السر',
             suffixIcon: IconButton(
               onPressed: () {
                 setState(() {
@@ -197,49 +193,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
             fontSize: 16),
         onSaved: (str) {
           _password = str;
-        }
-    );
+        });
   }
 
   Widget _confirmPasswordField(BuildContext context) {
     return TextFormField(
-        controller: _confirmPasswordController,
-        obscureText: _obscureText,
-        keyboardType: TextInputType.visiblePassword,
-        decoration: InputDecoration(
-            hintText: 'Confirm Password',
-            suffixIcon: IconButton(
-              onPressed: () {
-                setState(() {
-                  _obscureText = !_obscureText;
-                });
-              },
-              icon: Icon(
-                _obscureText ? Icons.visibility_off : Icons.remove_red_eye,
-                color: Colors.grey,
-              ),
+      controller: _confirmPasswordController,
+      obscureText: _obscureText,
+      keyboardType: TextInputType.visiblePassword,
+      decoration: InputDecoration(
+          hintText: 'تأكيد كلمة السر',
+          suffixIcon: IconButton(
+            onPressed: () {
+              setState(() {
+                _obscureText = !_obscureText;
+              });
+            },
+            icon: Icon(
+              _obscureText ? Icons.visibility_off : Icons.remove_red_eye,
+              color: Colors.grey,
             ),
-            filled: true,
-            fillColor: Colors.black12,
-            focusedBorder: _outlineInputBorder,
-            border: _outlineInputBorder,
-            disabledBorder: _outlineInputBorder,
-            enabledBorder: _outlineInputBorder),
-        style: TextStyle(
-            color: Colors.black.withOpacity(.6),
-            fontWeight: FontWeight.w600,
-            fontSize: 16),
-        validator: (confirmation) {
-          return confirmation.isEmpty
-              ? 'Confirm password is required'
-              : validationEqual(confirmation, _passwordController.text)
-              ? null
-              : 'Password not match';
-        },
-        onSaved: (str) {
-          _confirmPassword = str;
-        },
-
+          ),
+          filled: true,
+          fillColor: Colors.black12,
+          focusedBorder: _outlineInputBorder,
+          border: _outlineInputBorder,
+          disabledBorder: _outlineInputBorder,
+          enabledBorder: _outlineInputBorder),
+      style: TextStyle(
+          color: Colors.black.withOpacity(.6),
+          fontWeight: FontWeight.w600,
+          fontSize: 16),
+      validator: (confirmation) {
+        return confirmation.isEmpty
+            ? _required
+            : validationEqual(confirmation, _passwordController.text)
+                ? null
+                : 'كلمة المرور غير متطابقة';
+      },
+      onSaved: (str) {
+        _confirmPassword = str;
+      },
     );
   }
 
@@ -248,7 +242,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       controller: _phoneController,
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
-          hintText: 'Enter your phone',
+          hintText: 'الهاتف',
           filled: true,
           fillColor: Colors.black12,
           focusedBorder: _outlineInputBorder,
@@ -274,7 +268,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         color: Color(0xFFFE7550),
         onPressed: _onRegisterClicked,
         child: Text(
-          'REGISTER',
+          'تسجيل',
           style: TextStyle(
               fontSize: 22, color: Colors.white, fontWeight: FontWeight.w800),
         ));
@@ -310,19 +304,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       //connect with firebase
       registerUserInFirebase();
     }
-
   }
 
   void registerUserInFirebase() {
     FirebaseAuth.instance
         .createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim())
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim())
         .then((authResult) {
-          print('===============================');
       Firestore.instance.collection('profiles').document().setData({
         'name': _nameController.text.trim(),
-        'phone_number':_phoneController.text.trim(),
+        'phone_number': _phoneController.text.trim(),
         'email': _emailController.text.trim(),
         'password': _passwordController.text.trim(),
         'user_id': authResult.user.uid,
@@ -332,13 +324,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
           .catchError((error) {
         setState(() {
           _isLoading = false;
-          _error = "User registration error";
+          _error = "هناك خطأ في التسجيل";
         });
       });
     }).catchError((error) {
       setState(() {
         _isLoading = false;
-        _error = "User registration error";
+        _error = "هناك خطأ في التسجيل";
       });
     });
   }
@@ -346,16 +338,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String validatePhone(String value) {
     String pattern = r'(^[0-9]*$)';
     RegExp regExp = new RegExp(pattern);
-    if (value
-        .replaceAll(" ", "")
-        .isEmpty) {
-      return 'Mobile is required';
-    } else if (value
-        .replaceAll(" ", "")
-        .length != 10) {
-      return 'Mobile number must 10 digits';
+    if (value.replaceAll(" ", "").isEmpty) {
+      return _required;
+    } else if (value.replaceAll(" ", "").length != 10) {
+      return 'يجيب أن يكون الهاتف أطول من 10 أرقام';
     } else if (!regExp.hasMatch(value.replaceAll(" ", ""))) {
-      return 'Mobile number must be digits';
+      return 'يجب أن يكون رقم الهاتف من أرقام فقط';
     }
     return null;
   }
@@ -365,9 +353,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
         r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$';
     RegExp regExp = new RegExp(pattern);
     if (value.isEmpty) {
-      return 'Email is required';
+      return _required;
     } else if (!regExp.hasMatch(value)) {
-      return 'Invalid email';
+      return 'الإيميل غير صحيح';
     } else {
       return null;
     }
@@ -375,18 +363,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String validatePassword(String value) {
     if (value.isEmpty) {
-      return 'Password is required';
+      return _required;
     } else if (value.length < 4) {
-      return 'Password must be at least 4 characters';
+      return 'كلمة الرور أقل من 4 أحرف';
     }
     return null;
   }
 
   String validateConfirmPassword(String value) {
     if (value.isEmpty) {
-      return 'Confirm password is required';
+      return _required;
     } else if (value.length < 4) {
-      return 'Confirm password must be at least 4 characters';
+      return 'كلمة الرور أقل من 4 أحرف';
     }
     return null;
   }

@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:marketers_reports/shared_ui/nav_menu.dart';
 
 class NewReport extends StatefulWidget {
@@ -24,7 +26,8 @@ class _NewReportState extends State<NewReport> {
   var _key = GlobalKey<FormState>();
   bool _autoValidation = false;
   bool _isLoading = false;
-  bool _isError =false;
+  bool _isError = false;
+  String _required ='مطلوب**';
 
   double _price = 1;
   double _quantity = 1;
@@ -33,6 +36,7 @@ class _NewReportState extends State<NewReport> {
   double _total = 0.0;
   double _netProfit = 0.0;
   var _selectedUser;
+  Timestamp _dateTimeStamp = Timestamp.fromDate(DateTime.now());
 
   @override
   void dispose() {
@@ -67,7 +71,7 @@ class _NewReportState extends State<NewReport> {
   Widget _scaffold(context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ADD REPORT'),
+        title: Text('إضافة تقرير'),
         centerTitle: true,
         actions: <Widget>[],
       ),
@@ -107,7 +111,7 @@ class _NewReportState extends State<NewReport> {
               _sellingPriceField(context),
               SizedBox(height: 20),
               _commentsField(context),
-              SizedBox(height: 20),
+              SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
@@ -117,7 +121,9 @@ class _NewReportState extends State<NewReport> {
                 ],
               ),
               SizedBox(height: 20),
-             _isError ?  _errorMessage(context, 'Please select user'): Container(),
+              _isError
+                  ? _errorMessage(context, 'الرجاء إدخال اسم المسوّق')
+                  : Container(),
             ],
           ),
         ),
@@ -148,18 +154,38 @@ class _NewReportState extends State<NewReport> {
 
   Widget _historyField(BuildContext context) {
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        child: TextFormField(
-            controller: _historyController,
-            decoration: InputDecoration(hintText: 'History'),
-            keyboardType: TextInputType.datetime,
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'History is required';
-              }
-              return null;
-            }),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: Icon(Icons.date_range),
+              ),
+              SizedBox(width: 10),
+              Text(DateFormat('yyyy-MM-dd').format(_dateTimeStamp.toDate())),
+            ],
+          ),
+          FlatButton(
+            child: Text(
+              'تغيير',
+              style: TextStyle(color: Colors.deepOrange),
+            ),
+            onPressed: () {
+              showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2015),
+                lastDate: DateTime(2030),
+              ).then((date) {
+                setState(() {
+                  _dateTimeStamp = Timestamp.fromDate(date);
+                });
+              });
+            },
+          ),
+        ],
       ),
     );
   }
@@ -170,10 +196,10 @@ class _NewReportState extends State<NewReport> {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
             controller: _clientNameController,
-            decoration: InputDecoration(hintText: 'Client Name'),
+            decoration: InputDecoration(hintText: 'اسم الزبون'),
             validator: (value) {
               if (value.isEmpty) {
-                return 'Client Name is required';
+                return 'اسم الزبون مطلوب';
               }
               return null;
             }),
@@ -186,15 +212,11 @@ class _NewReportState extends State<NewReport> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-            controller: _phoneController,
-            decoration: InputDecoration(hintText: 'Phone'),
-            keyboardType: TextInputType.phone,
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'Phone is required';
-              }
-              return null;
-            }),
+          controller: _phoneController,
+          decoration: InputDecoration(hintText: 'الهاتف'),
+          keyboardType: TextInputType.phone,
+          validator: validatePhone,
+        ),
       ),
     );
   }
@@ -205,10 +227,10 @@ class _NewReportState extends State<NewReport> {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
             controller: _productNameController,
-            decoration: InputDecoration(hintText: 'Product Name'),
+            decoration: InputDecoration(hintText: 'اسم الصنف'),
             validator: (value) {
               if (value.isEmpty) {
-                return 'Product Name is required';
+                return 'اسم الصنف مطلوب';
               }
               return null;
             }),
@@ -222,19 +244,18 @@ class _NewReportState extends State<NewReport> {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
             controller: _quantityController,
-            decoration: InputDecoration(hintText: 'Quantity'),
+            decoration: InputDecoration(hintText: 'الكمية'),
             keyboardType: TextInputType.number,
             onChanged: (value) {
               _quantity = double.tryParse(value);
               setState(() {
-                _totalController.text =
-                    (_quantity * _price ).toString();
+                _totalController.text = (_quantity * _price).toString();
                 _netProfitController.text = (_sellingPrice - _total).toString();
               });
             },
             validator: (value) {
               if (value.isEmpty) {
-                return 'Quantity is required';
+                return 'الكمية مطلوبة';
               }
               return null;
             }),
@@ -248,19 +269,18 @@ class _NewReportState extends State<NewReport> {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
             controller: _priceController,
-            decoration: InputDecoration(hintText: 'Price'),
+            decoration: InputDecoration(hintText: 'السعر'),
             onChanged: (value) {
               _price = double.tryParse(value);
               setState(() {
-                _totalController.text =
-                    (_quantity * _price ).toString();
+                _totalController.text = (_quantity * _price).toString();
                 _netProfitController.text = (_sellingPrice - _total).toString();
               });
             },
             keyboardType: TextInputType.number,
             validator: (value) {
               if (value.isEmpty) {
-                return 'Price is required';
+                return 'السعر مطلوب';
               }
               return null;
             }),
@@ -274,19 +294,18 @@ class _NewReportState extends State<NewReport> {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
             controller: _deliveryPriceController,
-            decoration: InputDecoration(hintText: 'Delivery Price'),
+            decoration: InputDecoration(hintText: 'التوصيل'),
             keyboardType: TextInputType.number,
             onChanged: (value) {
               _deliveryPrice = double.tryParse(value);
               setState(() {
-                _totalController.text =
-                    (_quantity * _price ).toString();
+                _totalController.text = (_quantity * _price).toString();
                 _netProfitController.text = (_sellingPrice - _total).toString();
               });
             },
             validator: (value) {
               if (value.isEmpty) {
-                return 'Delivery Price is required';
+                return 'التوصيل مطلوب';
               }
               return null;
             }),
@@ -300,18 +319,18 @@ class _NewReportState extends State<NewReport> {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
             controller: _sellingPriceController,
-            decoration: InputDecoration(hintText: 'Selling Price'),
+            decoration: InputDecoration(hintText: 'التحصيل'),
             keyboardType: TextInputType.number,
             onChanged: (value) {
               _sellingPrice = double.tryParse(value);
               setState(() {
-                _total = (_quantity * _price );
+                _total = (_quantity * _price);
                 _netProfit = (_sellingPrice - _total);
               });
             },
             validator: (value) {
               if (value.isEmpty) {
-                return 'Selling price is required';
+                return 'التحصيل مطلوب';
               }
               return null;
             }),
@@ -324,14 +343,9 @@ class _NewReportState extends State<NewReport> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-            controller: _commentsController,
-            decoration: InputDecoration(hintText: 'Comments'),
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'Comments is required';
-              }
-              return null;
-            }),
+          controller: _commentsController,
+          decoration: InputDecoration(hintText: 'تقرير'),
+        ),
       ),
     );
   }
@@ -339,11 +353,20 @@ class _NewReportState extends State<NewReport> {
   Widget _showTotal(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.4,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-          child: Text('$_total'),
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(right: 5),
+            child: Text('السعر الكلّي بالجملة'),
+          ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal:55, vertical: 15),
+              child: Text(_total.toString()),
+            ),
+          )
+        ],
       ),
     );
   }
@@ -351,11 +374,20 @@ class _NewReportState extends State<NewReport> {
   Widget _showNetProfit(BuildContext context) {
     return Container(
       width: MediaQuery.of(context).size.width * 0.4,
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 15),
-          child: Text('$_netProfit'),
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.only(right: 5),
+            child: Text('ربح المسوّق'),
+          ),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 55, vertical: 15),
+              child: Text(_netProfit.toString()),
+            ),
+          )
+        ],
       ),
     );
   }
@@ -405,7 +437,7 @@ class _NewReportState extends State<NewReport> {
                   },
                   value: _selectedUser,
                   isExpanded: false,
-                  hint: Text('Choose user'),
+                  hint: Text('اسم المسوّق'),
                 ),
               ),
             );
@@ -435,7 +467,7 @@ class _NewReportState extends State<NewReport> {
       FirebaseAuth.instance.currentUser().then((user) {
         Firestore.instance.collection('reports').document().setData({
           'user_id': _selectedUser,
-          'history': _historyController.text.trim(),
+          'history': _dateTimeStamp,
           'clientName': _clientNameController.text.trim(),
           'phone': _phoneController.text.trim(),
           'productName': _productNameController.text.trim(),
@@ -446,9 +478,8 @@ class _NewReportState extends State<NewReport> {
           'netProfit': _netProfit,
           'sellingPrice': _sellingPrice,
           'comments': _commentsController.text.trim(),
-        }).then((_) =>
-            Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => NewReport())));
+        }).then((_) => Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => NewReport())));
       });
     }
   }

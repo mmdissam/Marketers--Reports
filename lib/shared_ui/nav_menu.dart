@@ -13,7 +13,7 @@ Widget drawer(context) {
       children: <Widget>[
         ListTile(
             title: Text(
-              'ADD REPORT',
+              'إضافة تقرير',
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 22,
@@ -28,7 +28,7 @@ Widget drawer(context) {
             }),
         ListTile(
             title: Text(
-              'ADD USER',
+              'إضافة مسوّق جديد',
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 22,
@@ -43,7 +43,7 @@ Widget drawer(context) {
             }),
         ListTile(
             title: Text(
-              'All USERS',
+              'جميع المسوّقين',
               style: TextStyle(
                 color: Colors.grey.shade600,
                 fontSize: 22,
@@ -58,7 +58,7 @@ Widget drawer(context) {
             }),
         ListTile(
           title: Text(
-            'LOGOUT',
+            'تسجيل خروج',
             style: TextStyle(
               color: Colors.grey.shade600,
               fontSize: 22,

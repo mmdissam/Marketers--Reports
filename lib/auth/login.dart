@@ -65,7 +65,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: <Widget>[
                   SizedBox(height: height * .3),
                   Text(
-                    'Hello there!',
+                    'السلام عليكم',
                     style: TextStyle(
                       color: Colors.black.withOpacity(.7),
                       fontSize: 45,
@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   _passwordField(context),
                   SizedBox(height: 25),
                   _loginButton(context, width),
-                  SizedBox(height: height * .1),
+                  SizedBox(height: 10),
                   _isError ? _errorMessage(context) : Container(),
                 ],
               ),
@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
         controller: _emailController,
         keyboardType: TextInputType.emailAddress,
         decoration: InputDecoration(
-            hintText: 'Enter your email',
+            hintText: 'البريد الالكتروني',
             filled: true,
             fillColor: Colors.black12,
             focusedBorder: OutlineInputBorder(
@@ -121,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
             fontSize: 16),
         validator: (value) {
           if (value.isEmpty) {
-            return 'Email is required';
+            return 'الرجاء إدخال الإيميل';
           }
           return null;
         },
@@ -137,7 +137,7 @@ class _LoginScreenState extends State<LoginScreen> {
         obscureText: _obscureText,
         keyboardType: TextInputType.visiblePassword,
         decoration: InputDecoration(
-            hintText: 'Enter your password',
+            hintText: 'كلمة السر',
             suffixIcon: IconButton(
               onPressed: () {
                 setState(() {
@@ -169,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
             fontSize: 16),
         validator: (value) {
           if (value.isEmpty) {
-            return 'Password is required';
+            return 'الرجاء إدخال كلمة السر';
           }
           return null;
         },
@@ -243,8 +243,8 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _errorMessage(BuildContext context) {
     return Center(
       child: Text(
-        'Email or Password is wrong',
-        style: TextStyle(fontSize: 12, color: Colors.red),
+        'الإيميل أو الهاتف غير صحيح',
+        style: TextStyle(fontSize: 12, color: Colors.red,decoration: TextDecoration.underline,),
       ),
     );
   }

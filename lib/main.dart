@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:marketers_reports/auth/home_login.dart';
 import 'package:marketers_reports/reports/home_screen.dart';
 import 'package:marketers_reports/reports/new_report.dart';
@@ -26,14 +28,24 @@ class MarketersReports extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Marketers Reports',
+      title: 'تقارير المسوّقين',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: Colors.deepOrange,
         accentColor: Colors.deepOrangeAccent,
-        primaryIconTheme: IconThemeData(color:Colors.white),
+        iconTheme: IconThemeData(color: Colors.deepOrange),
+        primaryIconTheme: IconThemeData(color: Colors.white),
+        textTheme: GoogleFonts.cairoTextTheme(),
       ),
       home: home,
+      localizationsDelegates: [
+        // To make all the widget and Material and my edits change according to the language
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        Locale('ar', ''),
+      ],
     );
   }
 }

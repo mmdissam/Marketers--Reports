@@ -55,7 +55,7 @@ class _AdminHomeState extends State<AdminHome> {
               ? _loading(context)
               : (_hasError
                   ? _errorMessage(context, _error)
-                  : Text('ABO KINAN')),
+                  : Text('أبو كنان')),
           centerTitle: true,
         ),
         floatingActionButton: FloatingActionButton(
@@ -87,7 +87,7 @@ class _AdminHomeState extends State<AdminHome> {
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
-            return _errorMessage(context, 'No connection is made');
+            return _errorMessage(context, 'لا يوجد اتصال');
             break;
           case ConnectionState.waiting:
             return Center(child: CircularProgressIndicator());
@@ -97,7 +97,7 @@ class _AdminHomeState extends State<AdminHome> {
             if (snapshot.hasError) {
               return _errorMessage(context, snapshot.error.toString());
             } else if (!snapshot.hasData) {
-              return _errorMessage(context, 'No Data');
+              return _errorMessage(context, 'لا يوجد بيانات');
             }
             return _drawScreen(context, snapshot.data);
             break;

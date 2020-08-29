@@ -25,7 +25,7 @@ class HomeLogin extends StatelessWidget {
                     width: 35,
                   ),
                   Text(
-                    'Welcome!',
+                    'مرحباً بالجميع!',
                     style: TextStyle(
                         fontSize: 45,
                         fontFamily: 'font1',
@@ -40,7 +40,7 @@ class HomeLogin extends StatelessWidget {
                     width: 35,
                   ),
                   Text(
-                    'Nice to see you again!',
+                    'من الجيّد رؤيتك مجدداً!',
                     style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w500,
@@ -69,7 +69,7 @@ class HomeLogin extends StatelessWidget {
                                 builder: (context) => LoginScreen()));
                       },
                       child: Text(
-                        'Login',
+                        'دخول',
                         style: TextStyle(
                             fontSize: 22,
                             color: Colors.white,
