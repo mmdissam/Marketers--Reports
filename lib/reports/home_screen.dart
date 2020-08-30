@@ -105,8 +105,8 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: <Widget>[
             Center(
               child: FlatButton.icon(
-                icon: Icon(Icons.search,color: Colors.white),
-                label: Text('بحث',style: TextStyle(color: Colors.white)),
+                icon: Icon(Icons.search, color: Colors.white),
+                label: Text('بحث', style: TextStyle(color: Colors.white)),
                 onPressed: () async {
                   await displayDateRange(context);
                   queryValues();
@@ -147,19 +147,19 @@ class _HomeScreenState extends State<HomeScreen> {
         ? _loading(context)
         : (_hasError
             ? _errorMessage(context, _error)
-            :  _streamContent(context));
+            : _streamContent(context));
   }
 
   Widget _streamContent(BuildContext context) {
-    return StreamBuilder(
+    return StreamBuilder<QuerySnapshot>(
       stream: Firestore.instance
           .collection('reports')
           .where('user_id', isEqualTo: _user.uid)
           .where('history', isGreaterThanOrEqualTo: _start)
           .where('history', isLessThanOrEqualTo: _end)
-          .orderBy('history',descending: true)
+          .orderBy('history', descending: true)
           .snapshots(),
-      builder: (BuildContext context, AsyncSnapshot snapshot) {
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
             return _errorMessage(context, 'لا يوجد اتصال');
@@ -173,8 +173,16 @@ class _HomeScreenState extends State<HomeScreen> {
               return _errorMessage(context, snapshot.error.toString());
             } else if (!snapshot.hasData) {
               return _errorMessage(context, 'لا يوجد بيانات');
+            }else if(snapshot.data.documents.length <= 0){
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Center(child: Text('لا يوجد بيانات في الفترة المحددة الرجاء اختيار فترة أخرى من أيقونة البحث',style: TextStyle(fontSize: 18,color: Colors.deepOrange),)),
+              );
+            }else {
+              return _drawScreen(context, snapshot.data);
+
             }
-            return _drawScreen(context, snapshot.data);
+
             break;
         }
         return null;

@@ -413,7 +413,7 @@ class _NewReportState extends State<NewReport> {
 //                    final snackBar =
 //                    SnackBar(content: Text('Selected User is ${documentSnapshot.data['name']}'));
 //                    Scaffold.of(context).showSnackBar(snackBar);
-//
+////
                   },
                   value: _selectedUser,
                   isExpanded: false,
