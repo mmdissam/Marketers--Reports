@@ -1,44 +1,37 @@
+import 'package:marketers_reports/models/order_item.dart';
+
 class Report {
   String userId;
   DateTime history;
   String clientName;
   int phone;
-  String productName;
-  double quantity;
-  double price;
-  double deliveryPrice;
   double total;
   double netProfit;
-  double sellingPrice;
   String comments;
+  List<OrderItem> orderItem;
 
   Report(
-      this.userId,
-      this.history,
-      this.clientName,
-      this.phone,
-      this.productName,
-      this.quantity,
-      this.price,
-      this.deliveryPrice,
-      this.total,
-      this.netProfit,
-      this.sellingPrice,
-      this.comments);
+    this.userId,
+    this.history,
+    this.clientName,
+    this.phone,
+    this.total,
+    this.netProfit,
+    this.comments,
+    this.orderItem,
+  );
 
   Report.fromJson(Map<String, dynamic> map) {
     this.userId = map['user_id'];
     this.history = map['history'];
     this.clientName = map['clientName'];
     this.phone = map['phone'];
-    this.productName = map['productName'];
-    this.quantity = map['quantity'];
-    this.price = map['price'];
-    this.deliveryPrice = map['deliveryPrice'];
     this.total = map['total'];
     this.netProfit = map['netProfit'];
-    this.sellingPrice = map['sellingPrice'];
     this.comments = map['comments'];
+    this.orderItem = map['order_item']
+        .map<OrderItem>((item) => OrderItem.fromJson(item))
+        .toList();
   }
 
   Map<String, dynamic> toMap() {
@@ -47,14 +40,19 @@ class Report {
       'history': this.history,
       'clientName': this.clientName,
       'phone': this.phone,
-      'productName': this.productName,
-      'quantity': this.quantity,
-      'price': this.price,
-      'deliveryPrice': this.deliveryPrice,
       'total': this.total,
       'netProfit': this.netProfit,
-      'sellingPrice': this.sellingPrice,
       'comments': this.comments,
+      'order_item': toJsonOrderItem(this.orderItem),
     };
+  }
+
+  static List<Map<String, dynamic>> toJsonOrderItem(
+      List<OrderItem> orderItems) {
+    List<Map<String, dynamic>> list = [];
+    orderItems.forEach((element) {
+      list.add(element.toMap());
+    });
+    return list;
   }
 }

@@ -3,8 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:marketers_reports/reports/admin_home.dart';
-
-import 'file:///C:/Users/NiMo-/AndroidStudioProjects/marketers_reports/lib/shared_ui/nav_menu.dart';
+import 'package:marketers_reports/shared_ui/nav_menu.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -17,8 +16,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController _confirmPasswordController = TextEditingController();
   TextEditingController _nameController = TextEditingController();
   TextEditingController _phoneController = TextEditingController();
-
-  String _name, _email, _password, _confirmPassword, _phone;
 
   var _key = GlobalKey<FormState>();
   bool _autoValidation = false;
@@ -156,44 +153,39 @@ class _RegisterScreenState extends State<RegisterScreen> {
           fontWeight: FontWeight.w600,
           fontSize: 16),
       validator: validateEmail,
-      onSaved: (str) {
-        _email = str;
-      },
     );
   }
 
   Widget _passwordField(BuildContext context) {
     return TextFormField(
-        controller: _passwordController,
-        obscureText: _obscureText,
-        keyboardType: TextInputType.visiblePassword,
-        validator: validatePassword,
-        decoration: InputDecoration(
-            hintText: 'كلمة السر',
-            suffixIcon: IconButton(
-              onPressed: () {
-                setState(() {
-                  _obscureText = !_obscureText;
-                });
-              },
-              icon: Icon(
-                _obscureText ? Icons.visibility_off : Icons.remove_red_eye,
-                color: Colors.grey,
-              ),
+      controller: _passwordController,
+      obscureText: _obscureText,
+      keyboardType: TextInputType.visiblePassword,
+      validator: validatePassword,
+      decoration: InputDecoration(
+          hintText: 'كلمة السر',
+          suffixIcon: IconButton(
+            onPressed: () {
+              setState(() {
+                _obscureText = !_obscureText;
+              });
+            },
+            icon: Icon(
+              _obscureText ? Icons.visibility_off : Icons.remove_red_eye,
+              color: Colors.grey,
             ),
-            filled: true,
-            fillColor: Colors.black12,
-            focusedBorder: _outlineInputBorder,
-            border: _outlineInputBorder,
-            disabledBorder: _outlineInputBorder,
-            enabledBorder: _outlineInputBorder),
-        style: TextStyle(
-            color: Colors.black.withOpacity(.6),
-            fontWeight: FontWeight.w600,
-            fontSize: 16),
-        onSaved: (str) {
-          _password = str;
-        });
+          ),
+          filled: true,
+          fillColor: Colors.black12,
+          focusedBorder: _outlineInputBorder,
+          border: _outlineInputBorder,
+          disabledBorder: _outlineInputBorder,
+          enabledBorder: _outlineInputBorder),
+      style: TextStyle(
+          color: Colors.black.withOpacity(.6),
+          fontWeight: FontWeight.w600,
+          fontSize: 16),
+    );
   }
 
   Widget _confirmPasswordField(BuildContext context) {
@@ -231,9 +223,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ? null
                 : 'كلمة المرور غير متطابقة';
       },
-      onSaved: (str) {
-        _confirmPassword = str;
-      },
     );
   }
 
@@ -254,9 +243,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           fontWeight: FontWeight.w600,
           fontSize: 16),
       validator: validatePhone,
-      onSaved: (str) {
-        _phone = str;
-      },
     );
   }
 

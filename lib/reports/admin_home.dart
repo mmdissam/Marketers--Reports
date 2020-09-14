@@ -2,8 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:marketers_reports/reports/new_report.dart';
-
-import 'file:///C:/Users/NiMo-/AndroidStudioProjects/marketers_reports/lib/shared_ui/nav_menu.dart';
+import 'package:marketers_reports/reports/report_marketers_for_admin.dart';
+import 'package:marketers_reports/shared_ui/nav_menu.dart';
 
 class AdminHome extends StatefulWidget {
   @override
@@ -55,7 +55,11 @@ class _AdminHomeState extends State<AdminHome> {
               ? _loading(context)
               : (_hasError
                   ? _errorMessage(context, _error)
-                  : Text('أبو كنان')),
+                  : Text('أبو كنان',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold))),
           centerTitle: true,
         ),
         floatingActionButton: FloatingActionButton(
@@ -71,14 +75,11 @@ class _AdminHomeState extends State<AdminHome> {
   }
 
   Widget _content(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(24),
-      child: _isLoading
-          ? _loading(context)
-          : (_hasError
-              ? _errorMessage(context, _error)
-              : _streamContent(context)),
-    );
+    return _isLoading
+        ? _loading(context)
+        : (_hasError
+            ? _errorMessage(context, _error)
+            : _streamContent(context));
   }
 
   Widget _streamContent(BuildContext context) {
@@ -109,12 +110,18 @@ class _AdminHomeState extends State<AdminHome> {
 
   Widget _drawScreen(BuildContext context, QuerySnapshot data) {
     return ListView.builder(
+      padding: EdgeInsets.all(20),
       itemCount: data.documents.length,
       itemBuilder: (BuildContext context, int position) {
-        return Card(
-          child: ListTile(
-            title: Text(
-              data.documents[position]['name'],
+        return InkWell(
+          onTap: () => Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => ReportMarketersForAdmin(
+                  userId: data.documents[position]['user_id']))),
+          child: Card(
+            child: ListTile(
+              title: Text(
+                data.documents[position]['name'],
+              ),
             ),
           ),
         );

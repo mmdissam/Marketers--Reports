@@ -1,8 +1,12 @@
+import 'package:animated_button/animated_button.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:marketers_reports/cart/cart.dart';
+import 'package:marketers_reports/models/order_item.dart';
+import 'package:marketers_reports/models/report.dart';
 import 'package:marketers_reports/shared_ui/nav_menu.dart';
 
 class NewReport extends StatefulWidget {
@@ -16,25 +20,22 @@ class _NewReportState extends State<NewReport> {
   TextEditingController _phoneController = TextEditingController();
   TextEditingController _productNameController = TextEditingController();
   TextEditingController _quantityController = TextEditingController();
-  TextEditingController _priceController = TextEditingController();
+  TextEditingController _originalPriceController = TextEditingController();
+  TextEditingController _wholesalePriceController = TextEditingController();
   TextEditingController _deliveryPriceController = TextEditingController();
   TextEditingController _totalController = TextEditingController();
-  TextEditingController _netProfitController = TextEditingController();
   TextEditingController _sellingPriceController = TextEditingController();
   TextEditingController _commentsController = TextEditingController();
 
   var _key = GlobalKey<FormState>();
+  var _keyShowDialog = GlobalKey<FormState>();
   bool _autoValidation = false;
   bool _isLoading = false;
   bool _isError = false;
-  String _required ='مطلوب**';
-
-  double _price = 1;
-  double _quantity = 1;
-  double _deliveryPrice = 0;
-  double _sellingPrice = 0;
+  String _required = 'مطلوب**';
   double _total = 0.0;
   double _netProfit = 0.0;
+  List<OrderItem> _listOrderItem = [];
   var _selectedUser;
   Timestamp _dateTimeStamp = Timestamp.fromDate(DateTime.now());
 
@@ -45,10 +46,10 @@ class _NewReportState extends State<NewReport> {
     _phoneController.dispose();
     _productNameController.dispose();
     _quantityController.dispose();
-    _priceController.dispose();
+    _originalPriceController.dispose();
+    _wholesalePriceController.dispose();
     _deliveryPriceController.dispose();
     _totalController.dispose();
-    _netProfitController.dispose();
     _sellingPriceController.dispose();
     _commentsController.dispose();
     super.dispose();
@@ -71,9 +72,13 @@ class _NewReportState extends State<NewReport> {
   Widget _scaffold(context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('إضافة تقرير'),
+        title: Text(
+          'إضافة تقرير',
+          style: TextStyle(
+              color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+        ),
         centerTitle: true,
-        actions: <Widget>[],
+        actions: <Widget>[_showAddOrder(context)],
       ),
       drawer: drawer(context),
       floatingActionButton: FloatingActionButton(
@@ -87,41 +92,33 @@ class _NewReportState extends State<NewReport> {
   Widget _form(BuildContext context) {
     return SingleChildScrollView(
       child: Padding(
-        padding: EdgeInsets.all(25),
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 15),
         child: Column(
           children: <Widget>[
             _dropDownButton(context),
+            SizedBox(height: 20),
+            _historyField(context),
             Form(
               autovalidate: _autoValidation,
               key: _key,
               child: Column(
                 children: <Widget>[
-                  _historyField(context),
                   SizedBox(height: 20),
                   _clientNameField(context),
                   SizedBox(height: 20),
                   _phoneField(context),
                   SizedBox(height: 20),
-                  _productNameField(context),
-                  SizedBox(height: 20),
-                  _quantityField(context),
-                  SizedBox(height: 20),
-                  _priceField(context),
-                  SizedBox(height: 20),
-                  _deliveryPriceField(context),
-                  SizedBox(height: 20),
-                  _sellingPriceField(context),
-                  SizedBox(height: 20),
                   _commentsField(context),
-                  SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      _showTotal(context),
-                      SizedBox(width: 5),
-                      _showNetProfit(context),
-                    ],
-                  ),
+                  SizedBox(height: 30),
+                  _addOrderButton(context),
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: <Widget>[
+                  //     _showTotal(context),
+                  //     SizedBox(width: 5),
+                  //     _showNetProfit(context),
+                  //   ],
+                  // ),
                   SizedBox(height: 20),
                   _isError
                       ? _errorMessage(context, 'الرجاء إدخال اسم المسوّق')
@@ -132,6 +129,23 @@ class _NewReportState extends State<NewReport> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _addOrderButton(BuildContext context) {
+    return RaisedButton(
+      color: Color(0xFFFE7550),
+      child: Text(
+        'إضافة طلبية',
+        style: TextStyle(
+            fontSize: 22, color: Colors.white, fontWeight: FontWeight.w800),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 50),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(16.0))),
+      onPressed: () {
+        _showMaterialDialog();
+      },
     );
   }
 
@@ -199,9 +213,9 @@ class _NewReportState extends State<NewReport> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-            controller: _clientNameController,
-            decoration: InputDecoration(hintText: 'اسم الزبون'),
-            validator: validateNames,
+          controller: _clientNameController,
+          decoration: InputDecoration(hintText: 'اسم الزبون'),
+          validator: validateNames,
         ),
       ),
     );
@@ -223,12 +237,13 @@ class _NewReportState extends State<NewReport> {
 
   Widget _productNameField(BuildContext context) {
     return Card(
+      elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-            controller: _productNameController,
-            decoration: InputDecoration(hintText: 'اسم الصنف'),
-            validator: validateNames,
+          controller: _productNameController,
+          decoration: InputDecoration(hintText: 'اسم الصنف'),
+          validator: validateNames,
         ),
       ),
     );
@@ -236,61 +251,56 @@ class _NewReportState extends State<NewReport> {
 
   Widget _quantityField(BuildContext context) {
     return Card(
+      elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
             controller: _quantityController,
             decoration: InputDecoration(hintText: 'الكمية'),
             keyboardType: TextInputType.number,
-            onChanged: (value) {
-              _quantity = double.tryParse(value);
-              setState(() {
-                _totalController.text = (_quantity * _price).toString();
-                _netProfitController.text = (_sellingPrice - _total).toString();
-              });
-            },
             validator: validatePrices),
       ),
     );
   }
 
-  Widget _priceField(BuildContext context) {
+  Widget _originalPriceField(BuildContext context) {
     return Card(
+      elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-            controller: _priceController,
-            decoration: InputDecoration(hintText: 'السعر'),
-            onChanged: (value) {
-              _price = double.tryParse(value);
-              setState(() {
-                _totalController.text = (_quantity * _price).toString();
-                _netProfitController.text = (_sellingPrice - _total).toString();
-              });
-            },
+            controller: _originalPriceController,
+            decoration: InputDecoration(hintText: 'السعر الأصلي'),
             keyboardType: TextInputType.number,
-            validator: validatePrices
-        ),
+            validator: validatePrices),
+      ),
+    );
+  }
+
+  Widget _wholesalePriceField(BuildContext context) {
+    return Card(
+      elevation: 15,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: TextFormField(
+            controller: _wholesalePriceController,
+            decoration: InputDecoration(hintText: 'سعر الجملة'),
+            keyboardType: TextInputType.number,
+            validator: validatePrices),
       ),
     );
   }
 
   Widget _deliveryPriceField(BuildContext context) {
     return Card(
+      elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-            controller: _deliveryPriceController,
-            decoration: InputDecoration(hintText: 'التوصيل'),
-            keyboardType: TextInputType.number,
-            onChanged: (value) {
-              _deliveryPrice = double.tryParse(value);
-              setState(() {
-                _totalController.text = (_quantity * _price).toString();
-                _netProfitController.text = (_sellingPrice - _total).toString();
-              });
-            },
-            validator: validatePrices,
+          controller: _deliveryPriceController,
+          decoration: InputDecoration(hintText: 'التوصيل'),
+          keyboardType: TextInputType.number,
+          validator: validatePrices,
         ),
       ),
     );
@@ -298,20 +308,15 @@ class _NewReportState extends State<NewReport> {
 
   Widget _sellingPriceField(BuildContext context) {
     return Card(
+      elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-            controller: _sellingPriceController,
-            decoration: InputDecoration(hintText: 'التحصيل'),
-            keyboardType: TextInputType.number,
-            onChanged: (value) {
-              _sellingPrice = double.tryParse(value);
-              setState(() {
-                _total = (_quantity * _price);
-                _netProfit = (_sellingPrice - _total);
-              });
-            },
-            validator: validatePrices,),
+          controller: _sellingPriceController,
+          decoration: InputDecoration(hintText: 'التحصيل'),
+          keyboardType: TextInputType.number,
+          validator: validatePrices,
+        ),
       ),
     );
   }
@@ -330,20 +335,24 @@ class _NewReportState extends State<NewReport> {
 
   Widget _showTotal(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.4,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 5),
-            child: Text('السعر الكلّي بالجملة',style: TextStyle(fontWeight: FontWeight.bold),),
+            child: Text(
+              'السعر الكلّي بالجملة',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           Card(
             color: Colors.red.shade300,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal:55, vertical: 15),
-              child: Text(_total.toString()),
-            ),
+            child: Container(
+                width: MediaQuery.of(context).size.width * 0.4,
+                height: 60,
+                child: Center(
+                  child: Text(_total.toString()),
+                )),
           )
         ],
       ),
@@ -352,20 +361,22 @@ class _NewReportState extends State<NewReport> {
 
   Widget _showNetProfit(BuildContext context) {
     return Container(
-      width: MediaQuery.of(context).size.width * 0.4,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
           Padding(
             padding: const EdgeInsets.only(right: 5),
-            child: Text('ربح المسوّق',style: TextStyle(fontWeight: FontWeight.bold),),
+            child: Text(
+              'ربح المسوّق',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           Card(
             color: Colors.green.shade300,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 55, vertical: 15),
-              child: Text(_netProfit.toString()),
-            ),
+            child: Container(
+                width: MediaQuery.of(context).size.width * 0.4,
+                height: 60,
+                child: Center(child: Text(_netProfit.toString()))),
           )
         ],
       ),
@@ -401,8 +412,8 @@ class _NewReportState extends State<NewReport> {
                 ),
               );
             }
-            return Container(
-              width: double.infinity,
+            return Card(
+              color: Color(0xffFDDC9B),
               child: Center(
                 child: DropdownButton(
                   items: userItems,
@@ -410,14 +421,14 @@ class _NewReportState extends State<NewReport> {
                     setState(() {
                       _selectedUser = userValue;
                     });
-//                    final snackBar =
-//                    SnackBar(content: Text('Selected User is ${documentSnapshot.data['name']}'));
-//                    Scaffold.of(context).showSnackBar(snackBar);
-////
+                    //                    final snackBar =
+                    //                    SnackBar(content: Text('Selected User is ${documentSnapshot.data['name']}'));
+                    //  Scaffold.of(context).showSnackBar(snackBar);
+                    ////
                   },
                   value: _selectedUser,
                   isExpanded: false,
-                  hint: Text('اسم المسوّق'),
+                  hint: Text('الرجاء اختيار اسم المسوّق'),
                 ),
               ),
             );
@@ -436,19 +447,20 @@ class _NewReportState extends State<NewReport> {
       ),
     );
   }
+
   String validatePhone(String value) {
     String pattern = r'(^[0-9]*$)';
     RegExp regExp = new RegExp(pattern);
     if (value.trim().isEmpty) {
       return null;
-    }
-    else if (value.replaceAll(" ", "").length != 10) {
-      return 'يجيب أن يكون الهاتف من 10 أرقام';
+    } else if (value.replaceAll(" ", "").length != 10) {
+      return 'يجب أن يكون رقم الهاتف مكوّن من 10 أرقام';
     } else if (!regExp.hasMatch(value.replaceAll(" ", ""))) {
-      return 'يجب أن يكون رقم الهاتف من أرقام فقط';
+      return 'يجب أن يحتوي رقم الهاتف على أرقام فقط';
     }
     return null;
   }
+
   String validateNames(String value) {
     String pattern = r'(^[أ-ي]+$)';
     RegExp regExp = new RegExp(pattern);
@@ -459,6 +471,7 @@ class _NewReportState extends State<NewReport> {
     }
     return null;
   }
+
   String validatePrices(String value) {
     String pattern = r'(^[0-9]*$)';
     RegExp regExp = new RegExp(pattern);
@@ -483,17 +496,102 @@ class _NewReportState extends State<NewReport> {
           'history': _dateTimeStamp,
           'clientName': _clientNameController.text.trim(),
           'phone': _phoneController.text.trim(),
-          'productName': _productNameController.text.trim(),
-          'quantity': _quantityController.text.trim(),
-          'price': _priceController.text.trim(),
-          'deliveryPrice': _deliveryPriceController.text.trim(),
           'total': _total,
-          'netProfit': _netProfit,
-          'sellingPrice': _sellingPrice,
           'comments': _commentsController.text.trim(),
+          'netProfit': _netProfit,
+          'order_item': Report.toJsonOrderItem(_listOrderItem),
         }).then((_) => Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => NewReport())));
       });
     }
+  }
+
+  Widget _showAddOrder(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.shopping_cart),
+      onPressed: () {
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => Cart(listOrder: _listOrderItem)));
+      },
+    );
+  }
+
+  _showMaterialDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => new AlertDialog(
+        backgroundColor: Colors.white,
+        title: new Text("إضافة طلبية جديدة"),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _keyShowDialog,
+            autovalidate: _autoValidation,
+            child: Column(
+              children: [
+                _productNameField(context),
+                SizedBox(height: 20),
+                _quantityField(context),
+                SizedBox(height: 20),
+                _originalPriceField(context),
+                SizedBox(height: 20),
+                _wholesalePriceField(context),
+                SizedBox(height: 20),
+                _deliveryPriceField(context),
+                SizedBox(height: 20),
+                _sellingPriceField(context),
+              ],
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('إلغاء', style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          FlatButton(
+            child: Text('حفظ', style: TextStyle(color: Colors.green)),
+            onPressed: () {
+              if (!_keyShowDialog.currentState.validate()) {
+                setState(() {
+                  _autoValidation = true;
+                });
+              } else {
+                setState(() {
+                  _autoValidation = false;
+                });
+                _addToCart();
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addToCart() {
+    setState(
+      () {
+        _listOrderItem.add(
+          OrderItem(
+            _productNameController.text.trim(),
+            double.parse(_quantityController.text.trim()),
+            double.parse(_originalPriceController.text.trim()),
+            double.parse(_wholesalePriceController.text.trim()),
+            double.parse(_sellingPriceController.text.trim()),
+            double.parse(_deliveryPriceController.text.trim()),
+          ),
+        );
+        _total += (double.parse(_originalPriceController.text.trim()) *
+            double.parse(_quantityController.text.trim()));
+
+        _netProfit +=
+            (double.parse(_sellingPriceController.text.trim()) - _total);
+      },
+    );
   }
 }

@@ -31,6 +31,8 @@ class MarketersReports extends StatelessWidget {
       title: 'تقارير المسوّقين',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
+        appBarTheme: AppBarTheme(
+            centerTitle: true, textTheme: GoogleFonts.cairoTextTheme()),
         primaryColor: Colors.deepOrange,
         accentColor: Colors.deepOrangeAccent,
         iconTheme: IconThemeData(color: Colors.deepOrange),

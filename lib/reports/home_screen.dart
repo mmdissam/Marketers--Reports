@@ -173,14 +173,17 @@ class _HomeScreenState extends State<HomeScreen> {
               return _errorMessage(context, snapshot.error.toString());
             } else if (!snapshot.hasData) {
               return _errorMessage(context, 'لا يوجد بيانات');
-            }else if(snapshot.data.documents.length <= 0){
+            } else if (snapshot.data.documents.length <= 0) {
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Center(child: Text('لا يوجد بيانات في الفترة المحددة الرجاء اختيار فترة أخرى من أيقونة البحث',style: TextStyle(fontSize: 18,color: Colors.deepOrange),)),
+                child: Center(
+                    child: Text(
+                  'لا يوجد بيانات في الفترة المحددة الرجاء اختيار فترة أخرى من أيقونة البحث',
+                  style: TextStyle(fontSize: 18, color: Colors.deepOrange),
+                )),
               );
-            }else {
+            } else {
               return _drawScreen(context, snapshot.data);
-
             }
 
             break;
