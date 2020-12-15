@@ -1,4 +1,5 @@
-import 'package:animated_button/animated_button.dart';
+import 'dart:ui';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -15,7 +16,7 @@ class NewReport extends StatefulWidget {
 }
 
 class _NewReportState extends State<NewReport> {
-  TextEditingController _historyController = TextEditingController();
+  // TextEditingController _historyController = TextEditingController();
   TextEditingController _clientNameController = TextEditingController();
   TextEditingController _phoneController = TextEditingController();
   TextEditingController _productNameController = TextEditingController();
@@ -23,7 +24,7 @@ class _NewReportState extends State<NewReport> {
   TextEditingController _originalPriceController = TextEditingController();
   TextEditingController _wholesalePriceController = TextEditingController();
   TextEditingController _deliveryPriceController = TextEditingController();
-  TextEditingController _totalController = TextEditingController();
+  // TextEditingController _totalController = TextEditingController();
   TextEditingController _sellingPriceController = TextEditingController();
   TextEditingController _commentsController = TextEditingController();
 
@@ -33,15 +34,16 @@ class _NewReportState extends State<NewReport> {
   bool _isLoading = false;
   bool _isError = false;
   String _required = 'مطلوب**';
-  double _total = 0.0;
-  double _netProfit = 0.0;
+  // double _total = 0.0;
+  // double _netProfit = 0.0;
   List<OrderItem> _listOrderItem = [];
+  bool _orderReceived = false;
   var _selectedUser;
   Timestamp _dateTimeStamp = Timestamp.fromDate(DateTime.now());
 
   @override
   void dispose() {
-    _historyController.dispose();
+    // _historyController.dispose();
     _clientNameController.dispose();
     _phoneController.dispose();
     _productNameController.dispose();
@@ -49,7 +51,7 @@ class _NewReportState extends State<NewReport> {
     _originalPriceController.dispose();
     _wholesalePriceController.dispose();
     _deliveryPriceController.dispose();
-    _totalController.dispose();
+    // _totalController.dispose();
     _sellingPriceController.dispose();
     _commentsController.dispose();
     super.dispose();
@@ -110,6 +112,8 @@ class _NewReportState extends State<NewReport> {
                   SizedBox(height: 20),
                   _commentsField(context),
                   SizedBox(height: 30),
+                  _checkBox(context),
+                  SizedBox(height: 30),
                   _addOrderButton(context),
                   // Row(
                   //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -128,6 +132,37 @@ class _NewReportState extends State<NewReport> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  _checkBox(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: Row(
+        children: [
+          Text(
+            'إستلم أم لا؟',
+            style: TextStyle(fontStyle: FontStyle.italic),
+          ),
+          SizedBox(width: 15),
+          Container(
+            decoration: BoxDecoration(
+                border: Border.all(color: Colors.red, width: 2),
+                borderRadius: BorderRadius.all(Radius.circular(5))),
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: _orderReceived,
+              tristate: false,
+              onChanged: (bool isChecked) {
+                setState(() {
+                  _orderReceived = isChecked;
+                });
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -333,55 +368,55 @@ class _NewReportState extends State<NewReport> {
     );
   }
 
-  Widget _showTotal(BuildContext context) {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(right: 5),
-            child: Text(
-              'السعر الكلّي بالجملة',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          Card(
-            color: Colors.red.shade300,
-            child: Container(
-                width: MediaQuery.of(context).size.width * 0.4,
-                height: 60,
-                child: Center(
-                  child: Text(_total.toString()),
-                )),
-          )
-        ],
-      ),
-    );
-  }
+  // Widget _showTotal(BuildContext context) {
+  //   return Container(
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: <Widget>[
+  //         Padding(
+  //           padding: const EdgeInsets.only(right: 5),
+  //           child: Text(
+  //             'السعر الكلّي بالجملة',
+  //             style: TextStyle(fontWeight: FontWeight.bold),
+  //           ),
+  //         ),
+  //         Card(
+  //           color: Colors.red.shade300,
+  //           child: Container(
+  //               width: MediaQuery.of(context).size.width * 0.4,
+  //               height: 60,
+  //               child: Center(
+  //                 child: Text(_total.toString()),
+  //               )),
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
 
-  Widget _showNetProfit(BuildContext context) {
-    return Container(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.only(right: 5),
-            child: Text(
-              'ربح المسوّق',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          Card(
-            color: Colors.green.shade300,
-            child: Container(
-                width: MediaQuery.of(context).size.width * 0.4,
-                height: 60,
-                child: Center(child: Text(_netProfit.toString()))),
-          )
-        ],
-      ),
-    );
-  }
+  // Widget _showNetProfit(BuildContext context) {
+  //   return Container(
+  //     child: Column(
+  //       crossAxisAlignment: CrossAxisAlignment.start,
+  //       children: <Widget>[
+  //         Padding(
+  //           padding: const EdgeInsets.only(right: 5),
+  //           child: Text(
+  //             'ربح المسوّق',
+  //             style: TextStyle(fontWeight: FontWeight.bold),
+  //           ),
+  //         ),
+  //         Card(
+  //           color: Colors.green.shade300,
+  //           child: Container(
+  //               width: MediaQuery.of(context).size.width * 0.4,
+  //               height: 60,
+  //               child: Center(child: Text(_netProfit.toString()))),
+  //         )
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _dropDownButton(context) {
     return StreamBuilder<QuerySnapshot>(
@@ -462,7 +497,7 @@ class _NewReportState extends State<NewReport> {
   }
 
   String validateNames(String value) {
-    String pattern = r'(^[أ-ي]+$)';
+    String pattern = r"^[A-Za-zأ-ي]+$";
     RegExp regExp = new RegExp(pattern);
     if (value.trim().isEmpty) {
       return _required;
@@ -496,9 +531,10 @@ class _NewReportState extends State<NewReport> {
           'history': _dateTimeStamp,
           'clientName': _clientNameController.text.trim(),
           'phone': _phoneController.text.trim(),
-          'total': _total,
+          'orderReceived': _orderReceived,
+          // 'total': _total,
           'comments': _commentsController.text.trim(),
-          'netProfit': _netProfit,
+          // 'netProfit': _netProfit,
           'order_item': Report.toJsonOrderItem(_listOrderItem),
         }).then((_) => Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => NewReport())));
@@ -564,6 +600,7 @@ class _NewReportState extends State<NewReport> {
                   _autoValidation = false;
                 });
                 _addToCart();
+                _keyShowDialog.currentState.reset();
                 Navigator.of(context).pop();
               }
             },
@@ -583,14 +620,16 @@ class _NewReportState extends State<NewReport> {
             double.parse(_originalPriceController.text.trim()),
             double.parse(_wholesalePriceController.text.trim()),
             double.parse(_sellingPriceController.text.trim()),
-            double.parse(_deliveryPriceController.text.trim()),
+            _orderReceived
+                ? double.parse(_deliveryPriceController.text.trim())
+                : double.parse(_deliveryPriceController.text.trim()) * -1,
           ),
         );
-        _total += (double.parse(_originalPriceController.text.trim()) *
-            double.parse(_quantityController.text.trim()));
+        // _total += (double.parse(_originalPriceController.text.trim()) *
+        //     double.parse(_quantityController.text.trim()));
 
-        _netProfit +=
-            (double.parse(_sellingPriceController.text.trim()) - _total);
+        // _netProfit +=
+        //     (double.parse(_sellingPriceController.text.trim()) - _total);
       },
     );
   }

@@ -5,8 +5,9 @@ class Report {
   DateTime history;
   String clientName;
   int phone;
-  double total;
-  double netProfit;
+  bool orderReceived;
+  // double total;
+  // double netProfit;
   String comments;
   List<OrderItem> orderItem;
 
@@ -15,8 +16,9 @@ class Report {
     this.history,
     this.clientName,
     this.phone,
-    this.total,
-    this.netProfit,
+    this.orderReceived,
+    // this.total,
+    // this.netProfit,
     this.comments,
     this.orderItem,
   );
@@ -26,8 +28,9 @@ class Report {
     this.history = map['history'];
     this.clientName = map['clientName'];
     this.phone = map['phone'];
-    this.total = map['total'];
-    this.netProfit = map['netProfit'];
+    this.orderReceived = map['orderReceived'];
+    // this.total = map['total'];
+    // this.netProfit = map['netProfit'];
     this.comments = map['comments'];
     this.orderItem = map['order_item']
         .map<OrderItem>((item) => OrderItem.fromJson(item))
@@ -40,8 +43,9 @@ class Report {
       'history': this.history,
       'clientName': this.clientName,
       'phone': this.phone,
-      'total': this.total,
-      'netProfit': this.netProfit,
+      'orderReceived': this.orderReceived,
+      // 'total': this.total,
+      // 'netProfit': this.netProfit,
       'comments': this.comments,
       'order_item': toJsonOrderItem(this.orderItem),
     };
