@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:marketers_reports/cart/cart.dart';
 import 'package:marketers_reports/models/order_item.dart';
 import 'package:marketers_reports/models/report.dart';
 import 'package:marketers_reports/shared_ui/nav_menu.dart';
@@ -33,6 +32,7 @@ class _NewReportState extends State<NewReport> {
   bool _autoValidation = false;
   bool _isLoading = false;
   bool _isError = false;
+  bool _isErrorCartIsNull = false;
   String _required = 'مطلوب**';
   // double _total = 0.0;
   // double _netProfit = 0.0;
@@ -40,6 +40,9 @@ class _NewReportState extends State<NewReport> {
   bool _orderReceived = false;
   var _selectedUser;
   Timestamp _dateTimeStamp = Timestamp.fromDate(DateTime.now());
+  TextStyle _textStylePirce = TextStyle(color: Colors.black87);
+  TextStyle _textStyle =
+      TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold);
 
   @override
   void dispose() {
@@ -80,14 +83,21 @@ class _NewReportState extends State<NewReport> {
               color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
-        actions: <Widget>[_showAddOrder(context)],
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.save),
+            onPressed: _onAddReport,
+            tooltip: 'حفظ الطلبية',
+          )
+        ],
       ),
       drawer: drawer(context),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _onAddReport,
-        child: Icon(Icons.save),
-      ),
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: _onAddReport,
+      //   child: Icon(Icons.save),
+      // ),
       body: _isLoading ? _loading(context) : _form(context),
+      bottomNavigationBar: bottomNavigationBar(),
     );
   }
 
@@ -127,6 +137,14 @@ class _NewReportState extends State<NewReport> {
                   _isError
                       ? _errorMessage(context, 'الرجاء إدخال اسم المسوّق')
                       : Container(),
+                  _isErrorCartIsNull
+                      ? _errorMessage(context, 'قائمة الطلبات فارغة')
+                      : Container(),
+                  Container(
+                    color: Colors.black12,
+                    child: _testRow(context),
+                  ),
+                  Container(height: 50),
                 ],
               ),
             ),
@@ -134,6 +152,243 @@ class _NewReportState extends State<NewReport> {
         ),
       ),
     );
+  }
+
+  Widget _testRow(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        dataTextStyle: TextStyle(color: Colors.blueAccent),
+        horizontalMargin: 16,
+        columnSpacing: 16,
+        sortAscending: true,
+        columns: [
+          DataColumn(
+              label: _drawColumnTableProducts('الصنف'),
+              numeric: false,
+              tooltip: 'إسم الصنف'),
+          DataColumn(
+              label: _drawColumnTableProducts('الكمية'),
+              numeric: true,
+              tooltip: 'كمية الصنف المطلوبة'),
+          DataColumn(
+              label: _drawColumnTableProducts('السعر الأصلي'),
+              numeric: true,
+              tooltip: 'سعر الصنف الواحد الخاص بالتاجر'),
+          DataColumn(
+            label: _drawColumnTableProducts('سعر الجملة'),
+            numeric: true,
+            tooltip: 'سعر الجملة الخاص بالمسوّق',
+          ),
+          DataColumn(
+            label: _drawColumnTableProducts('التوصيل'),
+            numeric: true,
+            tooltip: 'سعر التوصيل',
+          ),
+          DataColumn(
+            label: _drawColumnTableProducts('التحصيل'),
+            numeric: true,
+            tooltip: 'مجموع التحصيل من هذا الصنف',
+          ),
+          // DataColumn(
+          //   label: _drawColumnTableProducts('ربح المسوّق'),
+          //   numeric: true,
+          //   tooltip: 'ربح المسوّق من هذا الصنف',
+          // ),
+          DataColumn(
+            label: _drawColumnTableProducts('تقرير'),
+            numeric: false,
+            tooltip: 'هل استلم أم لا',
+          ),
+        ],
+        rows: _listOrderItem
+            .map(
+              (orderItem) => DataRow(
+                // onSelectChanged: (_) {
+                //   // print(orderItem.productName);
+                //   // _onButtomPressedShowModelButtomSheet();
+                // },
+                cells: [
+                  DataCell(
+                    Text(
+                      orderItem.productName.toString(),
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    showEditIcon: true,
+                    onTap: () {
+                      print(orderItem.productName);
+                      setState(() {
+                        _onButtomPressedShowModelButtomSheet(orderItem);
+                      });
+                    },
+                  ),
+                  // DataCell(_dataCellText(orderItem.productName.toString())),
+                  DataCell(_dataCellText(orderItem.quantity.toString())),
+                  DataCell(_dataCellText(orderItem.originalPrice.toString())),
+                  DataCell(_dataCellText(orderItem.wholesalePrice.toString())),
+                  DataCell(_dataCellText(orderItem.deliveryPrice.toString())),
+                  DataCell(_dataCellText(orderItem.sellingPrice.toString())),
+                  // DataCell(_dataCellText(orderItem.deliveryPrice.toString())),
+                  DataCell(_dataCellText(_commentsController.text)),
+                ],
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  Widget _drawColumnTableProducts(String text) {
+    return Text(
+      text,
+      textAlign: TextAlign.start,
+      style: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w900,
+      ),
+    );
+  }
+
+  Widget _dataCellText(String text) {
+    return Text(
+      text,
+      textAlign: TextAlign.start,
+      style: TextStyle(
+        fontSize: 16,
+      ),
+    );
+  }
+
+  SingleChildScrollView bottomNavigationBar() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        width: 700,
+        color: Colors.deepOrange,
+        child: Row(
+          children: [
+            Expanded(
+              child: ListTile(
+                title: Text('العدد', style: _textStyle),
+                subtitle: Text(
+                  _listOrderItem.length.toString() + ' ₪',
+                  style: _textStylePirce,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListTile(
+                title: Text('التحصيل', style: _textStyle),
+                subtitle: Text(
+                  calcSellingPrice().toString() + ' ₪',
+                  style: _textStylePirce,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListTile(
+                title: Text('السعر الأصلي', style: _textStyle),
+                subtitle: Text(
+                  calcOriginalPrice().toString() + ' ₪',
+                  style: _textStylePirce,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListTile(
+                title: Text('سعر الجملة', style: _textStyle),
+                subtitle: Text(
+                  calcWholesalePrice().toString() + ' ₪',
+                  style: _textStylePirce,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListTile(
+                title: Text('التوصيل', style: _textStyle),
+                subtitle: Text(
+                  _orderReceived
+                      ? _calcDeliveryPricesIfOrderNotReceived().toString() +
+                          ' ₪'
+                      : (_calcDeliveryPricesIfOrderNotReceived() * -1)
+                              .toString() +
+                          ' ₪',
+                  style: _textStylePirce,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListTile(
+                title: Text('ربح التاجر', style: _textStyle),
+                subtitle: Text(
+                  _orderReceived ? _calcTraderProfit().toString() : '0.0 ₪',
+                  style: _textStylePirce,
+                ),
+              ),
+            ),
+            Expanded(
+              child: ListTile(
+                title: Text('ربح المسوّق', style: _textStyle),
+                subtitle: Text(
+                  _orderReceived ? calcTotalNetProfit().toString() : '0.0 ₪',
+                  style: _textStylePirce,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  double calcSellingPrice() {
+    double totalSellingPrice = 0;
+    for (var item in _listOrderItem) {
+      totalSellingPrice += item.sellingPrice;
+    }
+    return totalSellingPrice;
+  }
+
+  double calcOriginalPrice() {
+    double totalOriginalPrice = 0;
+    for (var item in _listOrderItem) {
+      totalOriginalPrice += (item.originalPrice * item.quantity);
+    }
+    return totalOriginalPrice;
+  }
+
+  double calcWholesalePrice() {
+    double totalWholesalePrice = 0;
+    for (var item in _listOrderItem) {
+      totalWholesalePrice += (item.wholesalePrice * item.quantity);
+    }
+    return totalWholesalePrice;
+  }
+
+  double calcTotalNetProfit() {
+    return calcSellingPrice() - calcWholesalePrice();
+  }
+
+  double calcNetProfit(int position) {
+    return (_listOrderItem[position].sellingPrice -
+        _listOrderItem[position].wholesalePrice);
+  }
+
+  double _calcTraderProfit() {
+    double traderProfit = 0;
+    for (var orderItem in _listOrderItem) {
+      traderProfit += orderItem.quantity *
+          (orderItem.wholesalePrice - orderItem.originalPrice);
+    }
+    return traderProfit;
+  }
+
+  double _calcDeliveryPricesIfOrderNotReceived() {
+    double deliveryPrices = 0;
+    for (var orderItem in _listOrderItem) {
+      deliveryPrices += orderItem.deliveryPrice;
+    }
+    return deliveryPrices;
   }
 
   _checkBox(BuildContext context) {
@@ -171,7 +426,7 @@ class _NewReportState extends State<NewReport> {
     return RaisedButton(
       color: Color(0xFFFE7550),
       child: Text(
-        'إضافة طلبية',
+        'إضافة طلبية جديدة',
         style: TextStyle(
             fontSize: 22, color: Colors.white, fontWeight: FontWeight.w800),
       ),
@@ -478,7 +733,8 @@ class _NewReportState extends State<NewReport> {
     return Center(
       child: Text(
         message,
-        style: TextStyle(color: Colors.red),
+        style:
+            TextStyle(color: Colors.red, decoration: TextDecoration.underline),
       ),
     );
   }
@@ -497,7 +753,7 @@ class _NewReportState extends State<NewReport> {
   }
 
   String validateNames(String value) {
-    String pattern = r"^[A-Za-zأ-ي]+$";
+    String pattern = r"^[A-Za-z أ-ي]+$";
     RegExp regExp = new RegExp(pattern);
     if (value.trim().isEmpty) {
       return _required;
@@ -524,6 +780,12 @@ class _NewReportState extends State<NewReport> {
         _isError = true;
         _isLoading = false;
       });
+    }
+    if (_listOrderItem.length == 0) {
+      setState(() {
+        _isErrorCartIsNull = true;
+        _isLoading = false;
+      });
     } else {
       FirebaseAuth.instance.currentUser().then((user) {
         Firestore.instance.collection('reports').document().setData({
@@ -542,17 +804,17 @@ class _NewReportState extends State<NewReport> {
     }
   }
 
-  Widget _showAddOrder(BuildContext context) {
-    return IconButton(
-      icon: Icon(Icons.shopping_cart),
-      onPressed: () {
-        Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (context) => Cart(listOrder: _listOrderItem)));
-      },
-    );
-  }
+  // Widget _showAddOrder(BuildContext context) {
+  //   return IconButton(
+  //     icon: Icon(Icons.shopping_cart),
+  //     onPressed: () {
+  //       Navigator.push(
+  //           context,
+  //           MaterialPageRoute(
+  //               builder: (context) => Cart(listOrder: _listOrderItem)));
+  //     },
+  //   );
+  // }
 
   _showMaterialDialog() {
     showDialog(
@@ -630,6 +892,34 @@ class _NewReportState extends State<NewReport> {
 
         // _netProfit +=
         //     (double.parse(_sellingPriceController.text.trim()) - _total);
+      },
+    );
+  }
+
+  void _onButtomPressedShowModelButtomSheet(OrderItem orderItem) {
+    showModalBottomSheet(
+      enableDrag: true,
+      context: context,
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              trailing: Icon(Icons.edit, size: 28, color: Colors.blue),
+              title: Text('تعديل', style: TextStyle(fontSize: 25)),
+              onTap: () {},
+            ),
+            ListTile(
+              trailing: Icon(Icons.delete, size: 28, color: Colors.red),
+              title: Text('حذف', style: TextStyle(fontSize: 25)),
+              onTap: () {
+                setState(() {
+                  _listOrderItem.remove(orderItem);
+                });
+              },
+            ),
+          ],
+        );
       },
     );
   }

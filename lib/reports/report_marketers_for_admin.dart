@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
@@ -98,16 +99,15 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
     );
   }
 
-  Container bottomNavigationBar() {
-    return Container(
-        height: 70,
-        width: MediaQuery.of(context).size.width,
+  SingleChildScrollView bottomNavigationBar() {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        width: 700,
         color: Colors.deepOrange,
-        child: ListView(
-          scrollDirection: Axis.horizontal,
+        child: Row(
           children: [
-            SizedBox(
-              width: 80,
+            Expanded(
               child: ListTile(
                 title: Text('العدد', style: _navigationBottomBartextStyle),
                 subtitle: Text(
@@ -116,8 +116,7 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
                 ),
               ),
             ),
-            SizedBox(
-              width: 120,
+            Expanded(
               child: ListTile(
                 title: Text(
                   'السعر الأصلي',
@@ -129,8 +128,7 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
                 ),
               ),
             ),
-            SizedBox(
-              width: 100,
+            Expanded(
               child: ListTile(
                 title: Text('سعر الجملة', style: _navigationBottomBartextStyle),
                 subtitle: Text(
@@ -139,8 +137,7 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
                 ),
               ),
             ),
-            SizedBox(
-              width: 100,
+            Expanded(
               child: ListTile(
                 title: Text('التحصيل', style: _navigationBottomBartextStyle),
                 subtitle: Text(
@@ -149,8 +146,7 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
                 ),
               ),
             ),
-            SizedBox(
-              width: 100,
+            Expanded(
               child: ListTile(
                 title: Text('ربح التاجر', style: _navigationBottomBartextStyle),
                 subtitle: Text(
@@ -159,8 +155,7 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
                 ),
               ),
             ),
-            SizedBox(
-              width: 120,
+            Expanded(
               child: ListTile(
                 title:
                     Text('ربح المسوّق', style: _navigationBottomBartextStyle),
@@ -171,7 +166,9 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
               ),
             ),
           ],
-        ));
+        ),
+      ),
+    );
   }
 
   Widget _content(BuildContext context) {
@@ -310,9 +307,10 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
                             ),
                           ),
                           RichText(
-                              textAlign: TextAlign.center,
-                              softWrap: true,
-                              text: TextSpan(children: <TextSpan>[
+                            textAlign: TextAlign.center,
+                            softWrap: true,
+                            text: TextSpan(
+                              children: <TextSpan>[
                                 TextSpan(
                                     text: (data.documents[position]
                                             ['orderReceived'])
@@ -336,7 +334,9 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 )
-                              ])),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -480,7 +480,7 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 dataTable(orderItems, data, position),
-                divider(context),
+                // divider(context),
                 totalOfAll(
                     'إجمالي السعر الأصلي:',
                     _calcTotalPriceFromFirebase(orderItems, 'originalPrice')
@@ -514,7 +514,11 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
                 Row(
                   children: [
                     TextButton(onPressed: () {}, child: Text('تعديل')),
-                    TextButton(onPressed: () {}, child: Text('حذف')),
+                    TextButton(
+                        onPressed: () {
+                          // Firestore.instance.collection("reports").where(field)
+                        },
+                        child: Text('حذف')),
                   ],
                 ),
               ],
@@ -586,6 +590,7 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
     return DataTable(
       horizontalMargin: 7,
       columnSpacing: 15,
+      showBottomBorder: true,
       columns: [
         DataColumn(
             label: _drawColumnTableProducts('الصنف'),
@@ -632,7 +637,9 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
       ],
       rows: orderItems
           .map((orderItem) => DataRow(cells: [
-                DataCell(Text(orderItem['productName'].toString())),
+                DataCell(Text(orderItem['productName'].toString()),
+                    showEditIcon: true,
+                    onTap: () => _onButtomPressedShowModelButtomSheet()),
                 DataCell(Text(orderItem['quantity'].toString())),
                 DataCell(Text(orderItem['originalPrice'].toString())),
                 DataCell(Text(orderItem['wholesalePrice'].toString())),
@@ -692,6 +699,32 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
           ),
         ),
       ]),
+    );
+  }
+
+  void _onButtomPressedShowModelButtomSheet() {
+    showModalBottomSheet(
+      enableDrag: true,
+      context: context,
+      builder: (context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              trailing: Icon(Icons.edit, size: 28, color: Colors.blue),
+              title: Text('تعديل', style: TextStyle(fontSize: 25)),
+              onTap: () {},
+            ),
+            ListTile(
+              trailing: Icon(Icons.delete, size: 28, color: Colors.red),
+              title: Text('حذف', style: TextStyle(fontSize: 25)),
+              onTap: () {
+                setState(() {});
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }
