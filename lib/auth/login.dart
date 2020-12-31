@@ -1,7 +1,7 @@
 import 'package:animated_button/animated_button.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:marketers_reports/reports/home_screen.dart';
+import 'package:marketers_reports/reports/marketers_screen.dart';
 import 'package:marketers_reports/reports/new_report.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _scaffold(BuildContext context, double height, double width) {
     return Scaffold(
-      body:  _isLoading ? _loading(context) : _form(context, height, width),
+      body: _isLoading ? _loading(context) : _form(context, height, width),
     );
   }
 
@@ -204,8 +204,8 @@ class _LoginScreenState extends State<LoginScreen> {
     }
     await FirebaseAuth.instance
         .signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim())
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim())
         .catchError((onError) {
       setState(() {
         _isLoading = false;
@@ -215,7 +215,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (result.user.uid == '1ClqQn53gYZCXvQaZI3eahQDY9E2') {
         Navigator.of(context)
             .pushReplacement(
-            MaterialPageRoute(builder: (context) => NewReport()))
+                MaterialPageRoute(builder: (context) => NewReport()))
             .catchError((error) {
           setState(() {
             _isLoading = false;
@@ -224,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
       } else {
         Navigator.of(context)
             .pushReplacement(
-            MaterialPageRoute(builder: (context) => HomeScreen()))
+                MaterialPageRoute(builder: (context) => HomeScreen()))
             .catchError((error) {
           setState(() {
             _isLoading = false;
@@ -243,8 +243,12 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _errorMessage(BuildContext context) {
     return Center(
       child: Text(
-        'الإيميل أو الهاتف غير صحيح',
-        style: TextStyle(fontSize: 12, color: Colors.red,decoration: TextDecoration.underline,),
+        'الإيميل أو كلمة المرور غير صحيح',
+        style: TextStyle(
+          fontSize: 12,
+          color: Colors.red,
+          decoration: TextDecoration.underline,
+        ),
       ),
     );
   }

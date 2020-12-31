@@ -15,7 +15,6 @@ class NewReport extends StatefulWidget {
 }
 
 class _NewReportState extends State<NewReport> {
-  // TextEditingController _historyController = TextEditingController();
   TextEditingController _clientNameController = TextEditingController();
   TextEditingController _phoneController = TextEditingController();
   TextEditingController _productNameController = TextEditingController();
@@ -23,19 +22,29 @@ class _NewReportState extends State<NewReport> {
   TextEditingController _originalPriceController = TextEditingController();
   TextEditingController _wholesalePriceController = TextEditingController();
   TextEditingController _deliveryPriceController = TextEditingController();
-  // TextEditingController _totalController = TextEditingController();
   TextEditingController _sellingPriceController = TextEditingController();
   TextEditingController _commentsController = TextEditingController();
 
+  TextEditingController _productNameEditingController = TextEditingController();
+  TextEditingController _quantityEditingController = TextEditingController();
+  TextEditingController _originalPriceEditingController =
+      TextEditingController();
+  TextEditingController _wholesalePriceEditingController =
+      TextEditingController();
+  TextEditingController _deliveryPriceEditingController =
+      TextEditingController();
+  TextEditingController _sellingPriceEditingController =
+      TextEditingController();
+  TextEditingController _commentsEditingController = TextEditingController();
+
   var _key = GlobalKey<FormState>();
   var _keyShowDialog = GlobalKey<FormState>();
+  var _keyShowDialogEditing = GlobalKey<FormState>();
   bool _autoValidation = false;
   bool _isLoading = false;
   bool _isError = false;
   bool _isErrorCartIsNull = false;
   String _required = 'مطلوب**';
-  // double _total = 0.0;
-  // double _netProfit = 0.0;
   List<OrderItem> _listOrderItem = [];
   bool _orderReceived = false;
   var _selectedUser;
@@ -46,7 +55,6 @@ class _NewReportState extends State<NewReport> {
 
   @override
   void dispose() {
-    // _historyController.dispose();
     _clientNameController.dispose();
     _phoneController.dispose();
     _productNameController.dispose();
@@ -54,9 +62,15 @@ class _NewReportState extends State<NewReport> {
     _originalPriceController.dispose();
     _wholesalePriceController.dispose();
     _deliveryPriceController.dispose();
-    // _totalController.dispose();
     _sellingPriceController.dispose();
     _commentsController.dispose();
+    _productNameEditingController.dispose();
+    _quantityEditingController.dispose();
+    _originalPriceEditingController.dispose();
+    _wholesalePriceEditingController.dispose();
+    _deliveryPriceEditingController.dispose();
+    _sellingPriceEditingController.dispose();
+    _commentsEditingController.dispose();
     super.dispose();
   }
 
@@ -116,23 +130,13 @@ class _NewReportState extends State<NewReport> {
               child: Column(
                 children: <Widget>[
                   SizedBox(height: 20),
-                  _clientNameField(context),
+                  _clientNameField(context, _clientNameController),
                   SizedBox(height: 20),
-                  _phoneField(context),
-                  SizedBox(height: 20),
-                  _commentsField(context),
+                  _phoneField(context, _phoneController),
                   SizedBox(height: 30),
                   _checkBox(context),
                   SizedBox(height: 30),
                   _addOrderButton(context),
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //   children: <Widget>[
-                  //     _showTotal(context),
-                  //     SizedBox(width: 5),
-                  //     _showNetProfit(context),
-                  //   ],
-                  // ),
                   SizedBox(height: 20),
                   _isError
                       ? _errorMessage(context, 'الرجاء إدخال اسم المسوّق')
@@ -142,7 +146,7 @@ class _NewReportState extends State<NewReport> {
                       : Container(),
                   Container(
                     color: Colors.black12,
-                    child: _testRow(context),
+                    child: _cartList(context),
                   ),
                   Container(height: 50),
                 ],
@@ -154,7 +158,7 @@ class _NewReportState extends State<NewReport> {
     );
   }
 
-  Widget _testRow(BuildContext context) {
+  Widget _cartList(BuildContext context) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
@@ -190,11 +194,6 @@ class _NewReportState extends State<NewReport> {
             numeric: true,
             tooltip: 'مجموع التحصيل من هذا الصنف',
           ),
-          // DataColumn(
-          //   label: _drawColumnTableProducts('ربح المسوّق'),
-          //   numeric: true,
-          //   tooltip: 'ربح المسوّق من هذا الصنف',
-          // ),
           DataColumn(
             label: _drawColumnTableProducts('تقرير'),
             numeric: false,
@@ -204,10 +203,6 @@ class _NewReportState extends State<NewReport> {
         rows: _listOrderItem
             .map(
               (orderItem) => DataRow(
-                // onSelectChanged: (_) {
-                //   // print(orderItem.productName);
-                //   // _onButtomPressedShowModelButtomSheet();
-                // },
                 cells: [
                   DataCell(
                     Text(
@@ -222,14 +217,12 @@ class _NewReportState extends State<NewReport> {
                       });
                     },
                   ),
-                  // DataCell(_dataCellText(orderItem.productName.toString())),
                   DataCell(_dataCellText(orderItem.quantity.toString())),
                   DataCell(_dataCellText(orderItem.originalPrice.toString())),
                   DataCell(_dataCellText(orderItem.wholesalePrice.toString())),
                   DataCell(_dataCellText(orderItem.deliveryPrice.toString())),
                   DataCell(_dataCellText(orderItem.sellingPrice.toString())),
-                  // DataCell(_dataCellText(orderItem.deliveryPrice.toString())),
-                  DataCell(_dataCellText(_commentsController.text)),
+                  DataCell(_dataCellText(orderItem.comments)),
                 ],
               ),
             )
@@ -321,7 +314,7 @@ class _NewReportState extends State<NewReport> {
               child: ListTile(
                 title: Text('ربح التاجر', style: _textStyle),
                 subtitle: Text(
-                  _orderReceived ? _calcTraderProfit().toString() : '0.0 ₪',
+                  _orderReceived ? _calcTraderProfit().toString() : '0 ₪',
                   style: _textStylePirce,
                 ),
               ),
@@ -330,7 +323,7 @@ class _NewReportState extends State<NewReport> {
               child: ListTile(
                 title: Text('ربح المسوّق', style: _textStyle),
                 subtitle: Text(
-                  _orderReceived ? calcTotalNetProfit().toString() : '0.0 ₪',
+                  _orderReceived ? calcTotalNetProfit().toString() : '0 ₪',
                   style: _textStylePirce,
                 ),
               ),
@@ -341,41 +334,41 @@ class _NewReportState extends State<NewReport> {
     );
   }
 
-  double calcSellingPrice() {
-    double totalSellingPrice = 0;
+  int calcSellingPrice() {
+    int totalSellingPrice = 0;
     for (var item in _listOrderItem) {
       totalSellingPrice += item.sellingPrice;
     }
     return totalSellingPrice;
   }
 
-  double calcOriginalPrice() {
-    double totalOriginalPrice = 0;
+  int calcOriginalPrice() {
+    int totalOriginalPrice = 0;
     for (var item in _listOrderItem) {
       totalOriginalPrice += (item.originalPrice * item.quantity);
     }
     return totalOriginalPrice;
   }
 
-  double calcWholesalePrice() {
-    double totalWholesalePrice = 0;
+  int calcWholesalePrice() {
+    int totalWholesalePrice = 0;
     for (var item in _listOrderItem) {
       totalWholesalePrice += (item.wholesalePrice * item.quantity);
     }
     return totalWholesalePrice;
   }
 
-  double calcTotalNetProfit() {
+  int calcTotalNetProfit() {
     return calcSellingPrice() - calcWholesalePrice();
   }
 
-  double calcNetProfit(int position) {
+  int calcNetProfit(int position) {
     return (_listOrderItem[position].sellingPrice -
         _listOrderItem[position].wholesalePrice);
   }
 
-  double _calcTraderProfit() {
-    double traderProfit = 0;
+  int _calcTraderProfit() {
+    int traderProfit = 0;
     for (var orderItem in _listOrderItem) {
       traderProfit += orderItem.quantity *
           (orderItem.wholesalePrice - orderItem.originalPrice);
@@ -383,8 +376,8 @@ class _NewReportState extends State<NewReport> {
     return traderProfit;
   }
 
-  double _calcDeliveryPricesIfOrderNotReceived() {
-    double deliveryPrices = 0;
+  int _calcDeliveryPricesIfOrderNotReceived() {
+    int deliveryPrices = 0;
     for (var orderItem in _listOrderItem) {
       deliveryPrices += orderItem.deliveryPrice;
     }
@@ -455,7 +448,6 @@ class _NewReportState extends State<NewReport> {
         _autoValidation = false;
         _isLoading = true;
       });
-
       _storeDataInFirebase();
     }
   }
@@ -498,97 +490,104 @@ class _NewReportState extends State<NewReport> {
     );
   }
 
-  Widget _clientNameField(BuildContext context) {
+  Widget _clientNameField(
+      BuildContext context, TextEditingController controller) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-          controller: _clientNameController,
-          decoration: InputDecoration(hintText: 'اسم الزبون'),
+          controller: controller,
+          decoration: InputDecoration(labelText: 'اسم الزبون'),
           validator: validateNames,
         ),
       ),
     );
   }
 
-  Widget _phoneField(BuildContext context) {
+  Widget _phoneField(BuildContext context, TextEditingController controller) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-          controller: _phoneController,
-          decoration: InputDecoration(hintText: 'الهاتف'),
+          controller: controller,
+          decoration: InputDecoration(labelText: 'الهاتف'),
           keyboardType: TextInputType.phone,
+          maxLength: 10,
           validator: validatePhone,
         ),
       ),
     );
   }
 
-  Widget _productNameField(BuildContext context) {
+  Widget _productNameField(
+      BuildContext context, TextEditingController controller) {
     return Card(
       elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-          controller: _productNameController,
-          decoration: InputDecoration(hintText: 'اسم الصنف'),
+          controller: controller,
+          decoration: InputDecoration(labelText: 'اسم الصنف'),
           validator: validateNames,
         ),
       ),
     );
   }
 
-  Widget _quantityField(BuildContext context) {
+  Widget _quantityField(
+      BuildContext context, TextEditingController controller) {
     return Card(
       elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-            controller: _quantityController,
-            decoration: InputDecoration(hintText: 'الكمية'),
+            controller: controller,
+            decoration: InputDecoration(labelText: 'الكمية'),
             keyboardType: TextInputType.number,
             validator: validatePrices),
       ),
     );
   }
 
-  Widget _originalPriceField(BuildContext context) {
+  Widget _originalPriceField(
+      BuildContext context, TextEditingController controller) {
     return Card(
       elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-            controller: _originalPriceController,
-            decoration: InputDecoration(hintText: 'السعر الأصلي'),
+            controller: controller,
+            decoration: InputDecoration(labelText: 'السعر الأصلي'),
             keyboardType: TextInputType.number,
             validator: validatePrices),
       ),
     );
   }
 
-  Widget _wholesalePriceField(BuildContext context) {
+  Widget _wholesalePriceField(
+      BuildContext context, TextEditingController controller) {
     return Card(
       elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-            controller: _wholesalePriceController,
-            decoration: InputDecoration(hintText: 'سعر الجملة'),
+            controller: controller,
+            decoration: InputDecoration(labelText: 'سعر الجملة'),
             keyboardType: TextInputType.number,
             validator: validatePrices),
       ),
     );
   }
 
-  Widget _deliveryPriceField(BuildContext context) {
+  Widget _deliveryPriceField(
+      BuildContext context, TextEditingController controller) {
     return Card(
       elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-          controller: _deliveryPriceController,
-          decoration: InputDecoration(hintText: 'التوصيل'),
+          controller: controller,
+          decoration: InputDecoration(labelText: 'التوصيل'),
           keyboardType: TextInputType.number,
           validator: validatePrices,
         ),
@@ -596,14 +595,15 @@ class _NewReportState extends State<NewReport> {
     );
   }
 
-  Widget _sellingPriceField(BuildContext context) {
+  Widget _sellingPriceField(
+      BuildContext context, TextEditingController controller) {
     return Card(
       elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-          controller: _sellingPriceController,
-          decoration: InputDecoration(hintText: 'التحصيل'),
+          controller: controller,
+          decoration: InputDecoration(labelText: 'التحصيل'),
           keyboardType: TextInputType.number,
           validator: validatePrices,
         ),
@@ -611,67 +611,19 @@ class _NewReportState extends State<NewReport> {
     );
   }
 
-  Widget _commentsField(BuildContext context) {
+  Widget _commentsField(
+      BuildContext context, TextEditingController controller) {
     return Card(
+      elevation: 15,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10),
         child: TextFormField(
-          controller: _commentsController,
-          decoration: InputDecoration(hintText: 'تقرير'),
+          controller: controller,
+          decoration: InputDecoration(labelText: 'تقرير'),
         ),
       ),
     );
   }
-
-  // Widget _showTotal(BuildContext context) {
-  //   return Container(
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: <Widget>[
-  //         Padding(
-  //           padding: const EdgeInsets.only(right: 5),
-  //           child: Text(
-  //             'السعر الكلّي بالجملة',
-  //             style: TextStyle(fontWeight: FontWeight.bold),
-  //           ),
-  //         ),
-  //         Card(
-  //           color: Colors.red.shade300,
-  //           child: Container(
-  //               width: MediaQuery.of(context).size.width * 0.4,
-  //               height: 60,
-  //               child: Center(
-  //                 child: Text(_total.toString()),
-  //               )),
-  //         )
-  //       ],
-  //     ),
-  //   );
-  // }
-
-  // Widget _showNetProfit(BuildContext context) {
-  //   return Container(
-  //     child: Column(
-  //       crossAxisAlignment: CrossAxisAlignment.start,
-  //       children: <Widget>[
-  //         Padding(
-  //           padding: const EdgeInsets.only(right: 5),
-  //           child: Text(
-  //             'ربح المسوّق',
-  //             style: TextStyle(fontWeight: FontWeight.bold),
-  //           ),
-  //         ),
-  //         Card(
-  //           color: Colors.green.shade300,
-  //           child: Container(
-  //               width: MediaQuery.of(context).size.width * 0.4,
-  //               height: 60,
-  //               child: Center(child: Text(_netProfit.toString()))),
-  //         )
-  //       ],
-  //     ),
-  //   );
-  // }
 
   Widget _dropDownButton(context) {
     return StreamBuilder<QuerySnapshot>(
@@ -787,16 +739,16 @@ class _NewReportState extends State<NewReport> {
         _isLoading = false;
       });
     } else {
-      FirebaseAuth.instance.currentUser().then((user) {
-        Firestore.instance.collection('reports').document().setData({
+      FirebaseAuth.instance.currentUser().then((user) async {
+        DocumentReference ref =
+            Firestore.instance.collection("reports").document();
+        await ref.setData({
+          'id': ref.documentID,
           'user_id': _selectedUser,
           'history': _dateTimeStamp,
           'clientName': _clientNameController.text.trim(),
           'phone': _phoneController.text.trim(),
           'orderReceived': _orderReceived,
-          // 'total': _total,
-          'comments': _commentsController.text.trim(),
-          // 'netProfit': _netProfit,
           'order_item': Report.toJsonOrderItem(_listOrderItem),
         }).then((_) => Navigator.of(context).pushReplacement(
             MaterialPageRoute(builder: (context) => NewReport())));
@@ -828,17 +780,19 @@ class _NewReportState extends State<NewReport> {
             autovalidate: _autoValidation,
             child: Column(
               children: [
-                _productNameField(context),
+                _productNameField(context, _productNameController),
                 SizedBox(height: 20),
-                _quantityField(context),
+                _quantityField(context, _quantityController),
                 SizedBox(height: 20),
-                _originalPriceField(context),
+                _originalPriceField(context, _originalPriceController),
                 SizedBox(height: 20),
-                _wholesalePriceField(context),
+                _wholesalePriceField(context, _wholesalePriceController),
                 SizedBox(height: 20),
-                _deliveryPriceField(context),
+                _deliveryPriceField(context, _deliveryPriceController),
                 SizedBox(height: 20),
-                _sellingPriceField(context),
+                _sellingPriceField(context, _sellingPriceController),
+                SizedBox(height: 20),
+                _commentsField(context, _commentsController),
               ],
             ),
           ),
@@ -847,6 +801,7 @@ class _NewReportState extends State<NewReport> {
           FlatButton(
             child: Text('إلغاء', style: TextStyle(color: Colors.red)),
             onPressed: () {
+              _keyShowDialog.currentState.reset();
               Navigator.of(context).pop();
             },
           ),
@@ -878,20 +833,16 @@ class _NewReportState extends State<NewReport> {
         _listOrderItem.add(
           OrderItem(
             _productNameController.text.trim(),
-            double.parse(_quantityController.text.trim()),
-            double.parse(_originalPriceController.text.trim()),
-            double.parse(_wholesalePriceController.text.trim()),
-            double.parse(_sellingPriceController.text.trim()),
+            int.parse(_quantityController.text.trim()),
+            int.parse(_originalPriceController.text.trim()),
+            int.parse(_wholesalePriceController.text.trim()),
+            int.parse(_sellingPriceController.text.trim()),
             _orderReceived
-                ? double.parse(_deliveryPriceController.text.trim())
-                : double.parse(_deliveryPriceController.text.trim()) * -1,
+                ? int.parse(_deliveryPriceController.text.trim())
+                : int.parse(_deliveryPriceController.text.trim()) * -1,
+            _commentsController.text.trim(),
           ),
         );
-        // _total += (double.parse(_originalPriceController.text.trim()) *
-        //     double.parse(_quantityController.text.trim()));
-
-        // _netProfit +=
-        //     (double.parse(_sellingPriceController.text.trim()) - _total);
       },
     );
   }
@@ -900,6 +851,7 @@ class _NewReportState extends State<NewReport> {
     showModalBottomSheet(
       enableDrag: true,
       context: context,
+      isDismissible: true,
       builder: (context) {
         return Column(
           mainAxisSize: MainAxisSize.min,
@@ -907,7 +859,10 @@ class _NewReportState extends State<NewReport> {
             ListTile(
               trailing: Icon(Icons.edit, size: 28, color: Colors.blue),
               title: Text('تعديل', style: TextStyle(fontSize: 25)),
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).pop();
+                _showMaterialDialogEditingCart(orderItem);
+              },
             ),
             ListTile(
               trailing: Icon(Icons.delete, size: 28, color: Colors.red),
@@ -916,11 +871,99 @@ class _NewReportState extends State<NewReport> {
                 setState(() {
                   _listOrderItem.remove(orderItem);
                 });
+                Navigator.of(context).pop();
               },
             ),
           ],
         );
       },
     );
+  }
+
+  _showMaterialDialogEditingCart(OrderItem orderItem) {
+    _productNameEditingController =
+        TextEditingController(text: orderItem.productName);
+    _quantityEditingController =
+        TextEditingController(text: orderItem.quantity.toString());
+    _originalPriceEditingController =
+        TextEditingController(text: orderItem.originalPrice.toString());
+    _wholesalePriceEditingController =
+        TextEditingController(text: orderItem.wholesalePrice.toString());
+    _deliveryPriceEditingController =
+        TextEditingController(text: orderItem.deliveryPrice.toString());
+    _sellingPriceEditingController =
+        TextEditingController(text: orderItem.sellingPrice.toString());
+    _commentsEditingController =
+        TextEditingController(text: orderItem.comments.toString());
+    showDialog(
+      context: context,
+      builder: (_) => new AlertDialog(
+        backgroundColor: Colors.white,
+        title: new Text("تعديل طلبية"),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _keyShowDialogEditing,
+            autovalidate: _autoValidation,
+            child: Column(
+              children: [
+                _productNameField(context, _productNameEditingController),
+                SizedBox(height: 20),
+                _quantityField(context, _quantityEditingController),
+                SizedBox(height: 20),
+                _originalPriceField(context, _originalPriceEditingController),
+                SizedBox(height: 20),
+                _wholesalePriceField(context, _wholesalePriceEditingController),
+                SizedBox(height: 20),
+                _deliveryPriceField(context, _deliveryPriceEditingController),
+                SizedBox(height: 20),
+                _sellingPriceField(context, _sellingPriceEditingController),
+                SizedBox(height: 20),
+                _commentsField(context, _commentsEditingController),
+              ],
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('إلغاء', style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              // _keyShowDialog.currentState.reset();
+              Navigator.of(context).pop();
+            },
+          ),
+          FlatButton(
+            child: Text('حفظ', style: TextStyle(color: Colors.green)),
+            onPressed: () {
+              if (!_keyShowDialogEditing.currentState.validate()) {
+                setState(() {
+                  _autoValidation = true;
+                });
+              } else {
+                setState(() {
+                  _autoValidation = false;
+                  _editCart(orderItem);
+                });
+                // _keyShowDialog.currentState.reset();
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _editCart(OrderItem orderItem) {
+    // setState(() {
+    orderItem.productName = _productNameEditingController.text;
+    orderItem.quantity = int.tryParse(_quantityEditingController.text);
+    orderItem.originalPrice =
+        int.tryParse(_originalPriceEditingController.text);
+    orderItem.wholesalePrice =
+        int.tryParse(_wholesalePriceEditingController.text);
+    orderItem.deliveryPrice =
+        int.tryParse(_deliveryPriceEditingController.text);
+    orderItem.sellingPrice = int.tryParse(_sellingPriceEditingController.text);
+    // });
   }
 }

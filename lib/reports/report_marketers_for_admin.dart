@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-// import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:date_range_picker/date_range_picker.dart' as DateRagePicker;
 import 'package:google_fonts/google_fonts.dart';
@@ -16,22 +14,36 @@ class ReportMarketersForAdmin extends StatefulWidget {
 }
 
 class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
+  TextEditingController _productNameEditingController = TextEditingController();
+  TextEditingController _quantityEditingController = TextEditingController();
+  TextEditingController _originalPriceEditingController =
+      TextEditingController();
+  TextEditingController _wholesalePriceEditingController =
+      TextEditingController();
+  TextEditingController _deliveryPriceEditingController =
+      TextEditingController();
+  TextEditingController _sellingPriceEditingController =
+      TextEditingController();
+  TextEditingController _commentsEditingController = TextEditingController();
+  var _keyShowDialogEditing = GlobalKey<FormState>();
+  String _required = 'مطلوب**';
+  bool _autoValidation = false;
   String _error;
   bool _hasError = false;
   bool _isLoading = true;
   DateTime _start = DateTime.now();
   DateTime _end = DateTime.now();
   String _name;
-  double total = 0;
+  int total = 0;
   Color _grayColor = Colors.grey;
   Color _blackColor = Colors.black54;
   int numOfOperation = 0;
-  double _netProfit = 0;
-  double _totalOriginalPrice = 0;
-  double _totalWholesalePrice = 0;
-  double _totalSellingPrice = 0;
-  double _totalTraderProfit = 0;
-  double _totalMarketerProfit = 0;
+  int _netProfit = 0;
+  int _totalOriginalPrice = 0;
+  int _totalWholesalePrice = 0;
+  int _totalSellingPrice = 0;
+  int _totalTraderProfit = 0;
+  int _totalMarketerProfit = 0;
   TextStyle _navigationBottomBartextStyle =
       TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold);
 
@@ -42,6 +54,18 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
   void initState() {
     super.initState();
     _prepareData();
+  }
+
+  @override
+  void dispose() {
+    _productNameEditingController.dispose();
+    _quantityEditingController.dispose();
+    _originalPriceEditingController.dispose();
+    _wholesalePriceEditingController.dispose();
+    _deliveryPriceEditingController.dispose();
+    _sellingPriceEditingController.dispose();
+    _commentsEditingController.dispose();
+    super.dispose();
   }
 
   void _prepareData() {
@@ -88,7 +112,7 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
               onPressed: () async {
                 _netProfit = 0;
                 await displayDateRange(context);
-                // queryValues();
+                queryValyes();
               },
             ),
           ),
@@ -180,6 +204,13 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
   }
 
   Widget _streamContent(BuildContext context) {
+    numOfOperation = 0;
+    _totalOriginalPrice = 0;
+    _totalWholesalePrice = 0;
+    _totalSellingPrice = 0;
+    _totalMarketerProfit = 0;
+    _totalTraderProfit = 0;
+
     return StreamBuilder<QuerySnapshot>(
       stream: Firestore.instance
           .collection('reports')
@@ -223,10 +254,6 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
   }
 
   Widget _drawScreen(BuildContext context, QuerySnapshot data) {
-    numOfOperation = 0;
-    _totalOriginalPrice = 0;
-    _totalWholesalePrice = 0;
-    _totalSellingPrice = 0;
     return Container(
       child: ListView.builder(
         padding: EdgeInsets.all(16),
@@ -237,18 +264,6 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
           if (data.documents[position]['orderReceived']) {
             _netProfit = _calcNetProfit(orderItem);
           }
-          numOfOperation = data.documents.length;
-          data.documents.forEach((element) {
-            List listOrderItems = element.data['order_item'];
-            for (var order in listOrderItems) {
-              _totalOriginalPrice += order['originalPrice'];
-              _totalWholesalePrice += order['wholesalePrice'];
-              _totalSellingPrice += order['sellingPrice'];
-
-              // _totalTraderProfit += order['sellingPrice'];
-            }
-          });
-          // print('oreder item is ' + orderItem[0]['deliveryPrice'].toString());
           DateTime dateTime = timeStamp.toDate();
           return Column(
             children: <Widget>[
@@ -258,90 +273,7 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
                   _showMaterialDialog(
                       context, data, position, orderItem, dateTime);
                 },
-                child: Card(
-                  color: data.documents[position]['orderReceived']
-                      ? Colors.white
-                      : Colors.red.shade100,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 20),
-                    child: SizedBox(
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Text(
-                            '(' + orderItem.length.toString() + ')',
-                            softWrap: true,
-                            style: TextStyle(
-                              color: data.documents[position]['orderReceived']
-                                  ? _grayColor
-                                  : _blackColor,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(
-                            width: 70,
-                            child: Text(
-                              data.documents[position]['clientName'].toString(),
-                              softWrap: true,
-                              style: TextStyle(
-                                color: data.documents[position]['orderReceived']
-                                    ? _grayColor
-                                    : _blackColor,
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Text(
-                            DateFormat('yyyy-MM-dd')
-                                .format(dateTime)
-                                .toString(),
-                            style: TextStyle(
-                              color: data.documents[position]['orderReceived']
-                                  ? _grayColor
-                                  : _blackColor,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          RichText(
-                            textAlign: TextAlign.center,
-                            softWrap: true,
-                            text: TextSpan(
-                              children: <TextSpan>[
-                                TextSpan(
-                                    text: (data.documents[position]
-                                            ['orderReceived'])
-                                        ? _netProfit.toString()
-                                        : _calcDeliveryPricesIfOrderNotReceived(
-                                                orderItem)
-                                            .toString(),
-                                    style: TextStyle(
-                                      color: Color(0xFF1367B8),
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                    )),
-                                TextSpan(
-                                  text: '\t₪',
-                                  style: TextStyle(
-                                    color: data.documents[position]
-                                            ['orderReceived']
-                                        ? _grayColor
-                                        : _blackColor,
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+                child: _cardItem(context, data, position, orderItem, dateTime),
               ),
             ],
           );
@@ -350,8 +282,91 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
     );
   }
 
-  double _calcNetProfit(List orderItems) {
-    double netProfit = 0;
+  Widget _cardItem(BuildContext context, QuerySnapshot data, int position,
+      List orderItem, DateTime dateTime) {
+    return Card(
+      color: data.documents[position]['orderReceived']
+          ? Colors.white
+          : Colors.red.shade100,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: SizedBox(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              Text(
+                '(' + orderItem.length.toString() + ')',
+                softWrap: true,
+                style: TextStyle(
+                  color: data.documents[position]['orderReceived']
+                      ? _grayColor
+                      : _blackColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(
+                width: 70,
+                child: Text(
+                  data.documents[position]['clientName'].toString(),
+                  softWrap: true,
+                  style: TextStyle(
+                    color: data.documents[position]['orderReceived']
+                        ? _grayColor
+                        : _blackColor,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text(
+                DateFormat('yyyy-MM-dd').format(dateTime).toString(),
+                style: TextStyle(
+                  color: data.documents[position]['orderReceived']
+                      ? _grayColor
+                      : _blackColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              RichText(
+                textAlign: TextAlign.center,
+                softWrap: true,
+                text: TextSpan(
+                  children: <TextSpan>[
+                    TextSpan(
+                        text: (data.documents[position]['orderReceived'])
+                            ? _netProfit.toString()
+                            : _calcDeliveryPricesIfOrderNotReceived(orderItem)
+                                .toString(),
+                        style: TextStyle(
+                          color: Color(0xFF1367B8),
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        )),
+                    TextSpan(
+                      text: '\t₪',
+                      style: TextStyle(
+                        color: data.documents[position]['orderReceived']
+                            ? _grayColor
+                            : _blackColor,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  int _calcNetProfit(List orderItems) {
+    int netProfit = 0;
     for (var orderItem in orderItems) {
       netProfit += orderItem['sellingPrice'] -
           (orderItem['wholesalePrice'] * orderItem['quantity']);
@@ -359,17 +374,17 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
     return netProfit;
   }
 
-  double _calcOriginalPrice(List orderItems) {
-    double netProfit = 0;
-    for (var orderItem in orderItems) {
-      netProfit += orderItem['sellingPrice'] -
-          (orderItem['wholesalePrice'] * orderItem['quantity']);
-    }
-    return netProfit;
-  }
+  // int _calcOriginalPrice(List orderItems) {
+  //   int netProfit = 0;
+  //   for (var orderItem in orderItems) {
+  //     netProfit += orderItem['sellingPrice'] -
+  //         (orderItem['wholesalePrice'] * orderItem['quantity']);
+  //   }
+  //   return netProfit;
+  // }
 
-  double _calcTraderProfit(List orderItems) {
-    double traderProfit = 0;
+  int _calcTraderProfit(List orderItems) {
+    int traderProfit = 0;
     for (var orderItem in orderItems) {
       traderProfit += orderItem['quantity'] *
           (orderItem['wholesalePrice'] - orderItem['originalPrice']);
@@ -377,16 +392,16 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
     return traderProfit;
   }
 
-  double _calcDeliveryPricesIfOrderNotReceived(List orderItems) {
-    double deliveryPrices = 0;
+  int _calcDeliveryPricesIfOrderNotReceived(List orderItems) {
+    int deliveryPrices = 0;
     for (var orderItem in orderItems) {
       deliveryPrices += orderItem['deliveryPrice'];
     }
     return deliveryPrices;
   }
 
-  double _calcTotalPriceFromFirebase(List orderItems, String field) {
-    double value = 0;
+  int _calcTotalPriceFromFirebase(List orderItems, String field) {
+    int value = 0;
     for (var orderItem in orderItems) {
       value += orderItem['$field'];
     }
@@ -399,33 +414,38 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
     );
   }
 
-/**
- *  void queryValues() {
-    FirebaseAuth.instance.currentUser().then((user) {
-      Firestore.instance
-          .collection('reports')
-          .where('user_id', isEqualTo: user.uid)
-          .where('history', isGreaterThanOrEqualTo: _start)
-          .where('history', isLessThanOrEqualTo: _end)
-          .snapshots()
-          .listen((snapshot) {
-        double tempTotal =
-            snapshot.documents.fold(0, (tot, doc) => tot + doc.data['total']);
-        setState(() {
-          total = tempTotal;
-        });
+  void queryValyes() {
+    Firestore.instance
+        .collection('reports')
+        .where('user_id', isEqualTo: widget.userId)
+        .where('history', isGreaterThanOrEqualTo: _start)
+        .where('history', isLessThanOrEqualTo: _end)
+        .getDocuments()
+        .then((QuerySnapshot data) {
+      numOfOperation = data.documents.length;
+      data.documents.forEach((element) {
+        List listOrderItems = element.data['order_item'];
+        for (var order in listOrderItems) {
+          _totalOriginalPrice += order['originalPrice'];
+          _totalWholesalePrice += order['wholesalePrice'];
+          _totalSellingPrice += order['sellingPrice'];
+          _totalTraderProfit += (order['quantity'] *
+              (order['wholesalePrice'] - order['originalPrice']));
+          _totalMarketerProfit += (order['sellingPrice'] -
+              (order['wholesalePrice'] * order['quantity']));
+        }
       });
     });
   }
- */
 
   Future displayDateRange(BuildContext context) async {
     final List<DateTime> picked = await DateRagePicker.showDatePicker(
-        context: context,
-        initialFirstDate: _start,
-        initialLastDate: _end,
-        firstDate: new DateTime(2015),
-        lastDate: new DateTime(2030));
+      context: context,
+      initialFirstDate: _start,
+      initialLastDate: _end,
+      firstDate: new DateTime(2015),
+      lastDate: new DateTime(2030),
+    );
     if (picked != null && picked.length == 2) {
       setState(() {
         _start = picked[0];
@@ -446,7 +466,6 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
   _rowOfItemOrder(BuildContext context, int position) {
     return Container(
       height: 50,
-      // width: MediaQuery.of(context).size.width,
       margin: EdgeInsets.only(bottom: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -464,6 +483,7 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
       List orderItems, DateTime dateTime) {
     String date = DateFormat('yyyy-MM-dd').format(dateTime).toString();
     showDialog(
+      useSafeArea: true,
       context: context,
       builder: (_) => new AlertDialog(
         title: _drawTitleShowDialog(position),
@@ -474,57 +494,77 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         backgroundColor: Color(0xFFFFFFFF),
         actions: <Widget>[
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                dataTable(orderItems, data, position),
-                // divider(context),
-                totalOfAll(
-                    'إجمالي السعر الأصلي:',
-                    _calcTotalPriceFromFirebase(orderItems, 'originalPrice')
-                        .toString()),
-                totalOfAll(
-                    'إجمالي سعر الجملة:',
-                    _calcTotalPriceFromFirebase(orderItems, 'wholesalePrice')
-                        .toString()),
-                totalOfAll(
-                    'إجمالي التحصيل:',
-                    _calcTotalPriceFromFirebase(orderItems, 'sellingPrice')
-                        .toString()),
-                totalOfAll(
-                    'إجمالي التوصيل:',
-                    _calcTotalPriceFromFirebase(orderItems, 'deliveryPrice')
-                        .toString()),
-                totalOfAll(
-                    'إجمالي ربح التاجر:',
-                    data.documents[position]['orderReceived']
-                        ? _calcTraderProfit(orderItems).toString()
-                        : '0'),
-                totalOfAll(
-                    'إجمالي ربح المسوّق:',
-                    data.documents[position]['orderReceived']
-                        ? _calcNetProfit(orderItems).toString()
-                        : _calcDeliveryPricesIfOrderNotReceived(orderItems)
-                            .toString()),
-                dateOfTotal('تاريخ الفاتورة:', date),
-                SizedBox(height: 20),
-                divider(context),
-                Row(
-                  children: [
-                    TextButton(onPressed: () {}, child: Text('تعديل')),
-                    TextButton(
-                        onPressed: () {
-                          // Firestore.instance.collection("reports").where(field)
-                        },
-                        child: Text('حذف')),
-                  ],
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                height: MediaQuery.of(context).size.height / 2,
+                child: SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      dataTable(orderItems, data, position),
+                      totalOfAll(
+                          'إجمالي السعر الأصلي:',
+                          _calcTotalPriceFromFirebase(
+                                  orderItems, 'originalPrice')
+                              .toString()),
+                      totalOfAll(
+                          'إجمالي سعر الجملة:',
+                          _calcTotalPriceFromFirebase(
+                                  orderItems, 'wholesalePrice')
+                              .toString()),
+                      totalOfAll(
+                          'إجمالي التحصيل:',
+                          _calcTotalPriceFromFirebase(
+                                  orderItems, 'sellingPrice')
+                              .toString()),
+                      totalOfAll(
+                          'إجمالي التوصيل:',
+                          _calcTotalPriceFromFirebase(
+                                  orderItems, 'deliveryPrice')
+                              .toString()),
+                      totalOfAll(
+                          'إجمالي ربح التاجر:',
+                          data.documents[position]['orderReceived']
+                              ? _calcTraderProfit(orderItems).toString()
+                              : '0'),
+                      totalOfAll(
+                          'إجمالي ربح المسوّق:',
+                          data.documents[position]['orderReceived']
+                              ? _calcNetProfit(orderItems).toString()
+                              : _calcDeliveryPricesIfOrderNotReceived(
+                                      orderItems)
+                                  .toString()),
+                      dateOfTotal('تاريخ الفاتورة:', date),
+                    ],
+                  ),
                 ),
-              ],
-            ),
+              ),
+              // SizedBox(height: 20),
+              divider(context),
+              _deleteButton(context, data, position),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _deleteButton(BuildContext context, QuerySnapshot data, int position) {
+    return Container(
+      color: Colors.red,
+      child: Center(
+        child: TextButton(
+          onPressed: () {
+            _showDialogDeleteConfirmationAllOrder(context, data, position);
+          },
+          child: Center(
+            child: Text(
+              'حذف',
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -586,84 +626,89 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
     );
   }
 
-  DataTable dataTable(List orderItems, QuerySnapshot data, int position) {
-    return DataTable(
-      horizontalMargin: 7,
-      columnSpacing: 15,
-      showBottomBorder: true,
-      columns: [
-        DataColumn(
-            label: _drawColumnTableProducts('الصنف'),
+  Widget dataTable(List orderItems, QuerySnapshot data, int position) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        horizontalMargin: 7,
+        columnSpacing: 15,
+        showBottomBorder: true,
+        columns: [
+          DataColumn(
+              label: _drawColumnTableProducts('الصنف'),
+              numeric: false,
+              tooltip: 'أسم الصنف'),
+          DataColumn(
+              label: _drawColumnTableProducts('الكمية'),
+              numeric: true,
+              tooltip: 'كمية الصنف المطلوبة'),
+          DataColumn(
+              label: _drawColumnTableProducts('السعر الأصلي'),
+              numeric: true,
+              tooltip: 'سعر الصنف الواحد الخاص بالتاجر'),
+          DataColumn(
+            label: _drawColumnTableProducts('سعر الجملة'),
+            numeric: true,
+            tooltip: 'سعر الجملة الخاص بالمسوّق',
+          ),
+          DataColumn(
+            label: _drawColumnTableProducts('التحصيل'),
+            numeric: true,
+            tooltip: 'مجموع التحصيل من هذا الصنف',
+          ),
+          DataColumn(
+            label: _drawColumnTableProducts('ربح التاجر'),
+            numeric: true,
+            tooltip: 'ربح التاجر من هذا الصنف',
+          ),
+          DataColumn(
+            label: _drawColumnTableProducts('ربح المسوّق'),
+            numeric: true,
+            tooltip: 'ربح المسوّق من هذا الصنف',
+          ),
+          DataColumn(
+            label: _drawColumnTableProducts('التوصيل'),
+            numeric: true,
+            tooltip: 'سعر التوصيل',
+          ),
+          DataColumn(
+            label: _drawColumnTableProducts('تقرير'),
             numeric: false,
-            tooltip: 'أسم الصنف'),
-        DataColumn(
-            label: _drawColumnTableProducts('الكمية'),
-            numeric: true,
-            tooltip: 'كمية الصنف المطلوبة'),
-        DataColumn(
-            label: _drawColumnTableProducts('السعر الأصلي'),
-            numeric: true,
-            tooltip: 'سعر الصنف الواحد الخاص بالتاجر'),
-        DataColumn(
-          label: _drawColumnTableProducts('سعر الجملة'),
-          numeric: true,
-          tooltip: 'سعر الجملة الخاص بالمسوّق',
-        ),
-        DataColumn(
-          label: _drawColumnTableProducts('التحصيل'),
-          numeric: true,
-          tooltip: 'مجموع التحصيل من هذا الصنف',
-        ),
-        DataColumn(
-          label: _drawColumnTableProducts('ربح التاجر'),
-          numeric: true,
-          tooltip: 'ربح التاجر من هذا الصنف',
-        ),
-        DataColumn(
-          label: _drawColumnTableProducts('ربح المسوّق'),
-          numeric: true,
-          tooltip: 'ربح المسوّق من هذا الصنف',
-        ),
-        DataColumn(
-          label: _drawColumnTableProducts('التوصيل'),
-          numeric: true,
-          tooltip: 'سعر التوصيل',
-        ),
-        DataColumn(
-          label: _drawColumnTableProducts('تقرير'),
-          numeric: false,
-          tooltip: 'هل استلم أم لا',
-        ),
-      ],
-      rows: orderItems
-          .map((orderItem) => DataRow(cells: [
-                DataCell(Text(orderItem['productName'].toString()),
-                    showEditIcon: true,
-                    onTap: () => _onButtomPressedShowModelButtomSheet()),
-                DataCell(Text(orderItem['quantity'].toString())),
-                DataCell(Text(orderItem['originalPrice'].toString())),
-                DataCell(Text(orderItem['wholesalePrice'].toString())),
-                DataCell(Text(orderItem['sellingPrice'].toString())),
-                DataCell(Text(data.documents[position]['orderReceived']
-                    ? (orderItem['quantity'] *
-                            _subTwoNum(orderItem['wholesalePrice'],
-                                orderItem['originalPrice']))
-                        .toString()
-                    : '0')),
-                DataCell(Text(data.documents[position]['orderReceived']
-                    ? _subTwoNum(orderItem['sellingPrice'],
-                            orderItem['quantity'] * orderItem['wholesalePrice'])
-                        .toString()
-                    : _calcDeliveryPricesIfOrderNotReceived(orderItems)
-                        .toString())),
-                DataCell(Text(orderItem['deliveryPrice'].toString())),
-                DataCell(Text(data.documents[position]['comments'])),
-              ]))
-          .toList(),
+            tooltip: 'هل استلم أم لا',
+          ),
+        ],
+        rows: orderItems
+            .map((orderItem) => DataRow(cells: [
+                  DataCell(Text(orderItem['productName'].toString()),
+                      showEditIcon: true,
+                      onTap: () => _onButtomPressedShowModelButtomSheet(
+                          orderItem, data, position)),
+                  DataCell(Text(orderItem['quantity'].toString())),
+                  DataCell(Text(orderItem['originalPrice'].toString())),
+                  DataCell(Text(orderItem['wholesalePrice'].toString())),
+                  DataCell(Text(orderItem['sellingPrice'].toString())),
+                  DataCell(Text(data.documents[position]['orderReceived']
+                      ? (orderItem['quantity'] *
+                              _subTwoNum(orderItem['wholesalePrice'],
+                                  orderItem['originalPrice']))
+                          .toString()
+                      : '0')),
+                  DataCell(Text(data.documents[position]['orderReceived']
+                      ? _subTwoNum(
+                              orderItem['sellingPrice'],
+                              orderItem['quantity'] *
+                                  orderItem['wholesalePrice'])
+                          .toString()
+                      : orderItem['deliveryPrice'].toString())),
+                  DataCell(Text(orderItem['deliveryPrice'].toString())),
+                  DataCell(Text(orderItem['comments'])),
+                ]))
+            .toList(),
+      ),
     );
   }
 
-  double _subTwoNum(double num1, double num2) {
+  int _subTwoNum(int num1, int num2) {
     return num1 - num2;
   }
 
@@ -702,7 +747,10 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
     );
   }
 
-  void _onButtomPressedShowModelButtomSheet() {
+  void _onButtomPressedShowModelButtomSheet(
+      Map orderItem, QuerySnapshot data, int position) {
+    var val = [];
+    val.add(orderItem);
     showModalBottomSheet(
       enableDrag: true,
       context: context,
@@ -712,14 +760,18 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
           children: [
             ListTile(
               trailing: Icon(Icons.edit, size: 28, color: Colors.blue),
-              title: Text('تعديل', style: TextStyle(fontSize: 25)),
-              onTap: () {},
+              title: Text('تعديل الصنف', style: TextStyle(fontSize: 25)),
+              onTap: () {
+                _showMaterialDialogEditingCart(
+                    data, position, val, context, orderItem);
+              },
             ),
             ListTile(
               trailing: Icon(Icons.delete, size: 28, color: Colors.red),
-              title: Text('حذف', style: TextStyle(fontSize: 25)),
+              title: Text('حذف الصنف', style: TextStyle(fontSize: 25)),
               onTap: () {
-                setState(() {});
+                _showDialogDeleteConfirmationOneItem(
+                    context, data, position, val);
               },
             ),
           ],
@@ -727,4 +779,364 @@ class _ReportMarketersForAdminState extends State<ReportMarketersForAdmin> {
       },
     );
   }
+
+  void _deleteItemOrderInArray(BuildContext context, QuerySnapshot data,
+      int position, var listOrderItemsToRemoveOrEdit) {
+    Firestore.instance
+        .collection("reports")
+        .document(data.documents[position]['id'])
+        .updateData({
+      "order_item": FieldValue.arrayRemove(listOrderItemsToRemoveOrEdit)
+    }).then((_) {
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+    });
+  }
+
+  void _showDialogDeleteConfirmationOneItem(BuildContext context,
+      QuerySnapshot data, int position, var listOrderItems) {
+    List arrayOfItemOrders = data.documents[position]['order_item'];
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(
+          arrayOfItemOrders.length == 1
+              ? 'ما في غير هالصنف الغلبان، اذا حذفته حتنحذف كل الطلبية'
+              : 'هل أنت متأكد من حذف هذا الصنف؟',
+        ),
+        elevation: 10,
+        titlePadding: EdgeInsets.only(left: 5, right: 5, top: 10, bottom: 0),
+        contentPadding:
+            EdgeInsets.only(left: 20, right: 20, top: 15, bottom: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: Color(0xFFFFFFFF),
+        actions: [
+          SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: FlatButton(
+              color: Colors.red,
+              onPressed: () {
+                arrayOfItemOrders.length == 1
+                    ? _deleteLastItemInOrder(data, position, context)
+                    : _deleteItemOrderInArray(
+                        context, data, position, listOrderItems);
+              },
+              child: Text(
+                'تأكيد',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDialogDeleteConfirmationAllOrder(
+      BuildContext context, QuerySnapshot data, int position) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(
+            'هل أنت متأكد من حذف كامل الطلبية ولّا اجا اصبعك عالزر بالغلط يخوي؟'),
+        elevation: 10,
+        titlePadding: EdgeInsets.only(left: 5, right: 5, top: 10, bottom: 0),
+        contentPadding:
+            EdgeInsets.only(left: 20, right: 20, top: 15, bottom: 10),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        backgroundColor: Color(0xFFFFFFFF),
+        actions: [
+          SingleChildScrollView(
+            scrollDirection: Axis.vertical,
+            child: FlatButton(
+              color: Colors.red,
+              onPressed: () {
+                _deleteOrder(data, position, context);
+              },
+              child: Text(
+                'تأكيد',
+                style: TextStyle(fontSize: 18),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteLastItemInOrder(
+      QuerySnapshot data, int position, BuildContext context) {
+    Firestore.instance
+        .collection('reports')
+        .document(data.documents[position]['id'])
+        .delete()
+        .then((value) {
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+    });
+  }
+
+  void _deleteOrder(QuerySnapshot data, int position, BuildContext context) {
+    Firestore.instance
+        .collection('reports')
+        .document(data.documents[position]['id'])
+        .delete()
+        .then((value) {
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+    });
+  }
+
+  _showMaterialDialogEditingCart(QuerySnapshot data, int position, List val,
+      BuildContext context, Map orderItem) {
+    _productNameEditingController =
+        TextEditingController(text: orderItem['productName']);
+    _quantityEditingController =
+        TextEditingController(text: orderItem['quantity'].toString());
+    _originalPriceEditingController =
+        TextEditingController(text: orderItem['originalPrice'].toString());
+    _wholesalePriceEditingController =
+        TextEditingController(text: orderItem['wholesalePrice'].toString());
+    _deliveryPriceEditingController =
+        TextEditingController(text: orderItem['deliveryPrice'].toString());
+    _sellingPriceEditingController =
+        TextEditingController(text: orderItem['sellingPrice'].toString());
+    _commentsEditingController =
+        TextEditingController(text: orderItem['comments']);
+    showDialog(
+      context: context,
+      builder: (_) => new AlertDialog(
+        backgroundColor: Colors.white,
+        title: new Text("تعديل طلبية"),
+        content: SingleChildScrollView(
+          child: Form(
+            key: _keyShowDialogEditing,
+            autovalidate: _autoValidation,
+            child: Column(
+              children: [
+                _productNameField(context, _productNameEditingController),
+                SizedBox(height: 20),
+                _quantityField(context, _quantityEditingController),
+                SizedBox(height: 20),
+                _originalPriceField(context, _originalPriceEditingController),
+                SizedBox(height: 20),
+                _wholesalePriceField(context, _wholesalePriceEditingController),
+                SizedBox(height: 20),
+                _deliveryPriceField(context, _deliveryPriceEditingController),
+                SizedBox(height: 20),
+                _sellingPriceField(context, _sellingPriceEditingController),
+                SizedBox(height: 20),
+                _commentsField(context, _commentsEditingController),
+              ],
+            ),
+          ),
+        ),
+        actions: <Widget>[
+          FlatButton(
+            child: Text('إلغاء', style: TextStyle(color: Colors.red)),
+            onPressed: () {
+              // _keyShowDialog.currentState.reset();
+              Navigator.of(context).pop();
+            },
+          ),
+          FlatButton(
+            child: Text('حفظ', style: TextStyle(color: Colors.green)),
+            onPressed: () {
+              if (!_keyShowDialogEditing.currentState.validate()) {
+                setState(() {
+                  _autoValidation = true;
+                });
+              } else {
+                setState(() {
+                  _autoValidation = false;
+                });
+                editItemOrder(data, position, val);
+
+                // _keyShowDialog.currentState.reset();
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void editItemOrder(QuerySnapshot data, int position, List val) {
+    Map<dynamic, dynamic> updateOrderItem = {
+      'productName': _productNameEditingController.text,
+      'quantity': int.tryParse(_quantityEditingController.text),
+      'originalPrice': int.tryParse(_originalPriceEditingController.text),
+      'wholesalePrice': int.tryParse(_wholesalePriceEditingController.text),
+      'deliveryPrice': int.tryParse(_deliveryPriceEditingController.text),
+      'sellingPrice': int.tryParse(_sellingPriceEditingController.text),
+      'comments': _commentsEditingController.text,
+    };
+    var updateVal = [];
+    updateVal.add(updateOrderItem);
+    Firestore.instance
+        .collection("reports")
+        .document(data.documents[position]['id'])
+        .updateData({"order_item": FieldValue.arrayRemove(val)}).whenComplete(
+            () {
+      Firestore.instance
+          .collection("reports")
+          .document(data.documents[position]['id'])
+          .updateData({"order_item": FieldValue.arrayUnion(updateVal)});
+    });
+  }
+
+  Widget _productNameField(
+      BuildContext context, TextEditingController controller) {
+    // TextEditingController o = TextEditingController(text: "kfnspfpsjg");
+    return Card(
+      elevation: 15,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: TextFormField(
+          controller: controller,
+          decoration: InputDecoration(labelText: 'اسم الصنف'),
+          validator: validateNames,
+        ),
+      ),
+    );
+  }
+
+  Widget _quantityField(
+      BuildContext context, TextEditingController controller) {
+    return Card(
+      elevation: 15,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: TextFormField(
+            controller: controller,
+            decoration: InputDecoration(labelText: 'الكمية'),
+            keyboardType: TextInputType.number,
+            validator: validatePrices),
+      ),
+    );
+  }
+
+  Widget _originalPriceField(
+      BuildContext context, TextEditingController controller) {
+    return Card(
+      elevation: 15,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: TextFormField(
+            controller: controller,
+            decoration: InputDecoration(labelText: 'السعر الأصلي'),
+            keyboardType: TextInputType.number,
+            validator: validatePrices),
+      ),
+    );
+  }
+
+  Widget _wholesalePriceField(
+      BuildContext context, TextEditingController controller) {
+    return Card(
+      elevation: 15,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: TextFormField(
+            controller: controller,
+            decoration: InputDecoration(labelText: 'سعر الجملة'),
+            keyboardType: TextInputType.number,
+            validator: validatePrices),
+      ),
+    );
+  }
+
+  Widget _deliveryPriceField(
+      BuildContext context, TextEditingController controller) {
+    return Card(
+      elevation: 15,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: TextFormField(
+          controller: controller,
+          decoration: InputDecoration(labelText: 'التوصيل'),
+          keyboardType: TextInputType.number,
+          validator: validatePrices,
+        ),
+      ),
+    );
+  }
+
+  Widget _sellingPriceField(
+      BuildContext context, TextEditingController controller) {
+    return Card(
+      elevation: 15,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: TextFormField(
+          controller: controller,
+          decoration: InputDecoration(labelText: 'التحصيل'),
+          keyboardType: TextInputType.number,
+          validator: validatePrices,
+        ),
+      ),
+    );
+  }
+
+  Widget _commentsField(
+      BuildContext context, TextEditingController controller) {
+    return Card(
+      elevation: 15,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        child: TextFormField(
+          controller: controller,
+          decoration: InputDecoration(labelText: 'تقرير'),
+        ),
+      ),
+    );
+  }
+
+  String validateNames(String value) {
+    String pattern = r"^[A-Za-z أ-ي]+$";
+    RegExp regExp = new RegExp(pattern);
+    if (value.trim().isEmpty) {
+      return _required;
+    } else if (!regExp.hasMatch(value.trim())) {
+      return 'يجب أن يكون الإسم من الأحرف فقط';
+    }
+    return null;
+  }
+
+  String validatePrices(String value) {
+    String pattern = r'(^[0-9]*$)';
+    RegExp regExp = new RegExp(pattern);
+    if (value.trim().isEmpty) {
+      return _required;
+    } else if (!regExp.hasMatch(value.trim())) {
+      return 'يجب أن يكون من الأرقام فقط';
+    }
+    return null;
+  }
+  // void queryValues() {
+  //   // FirebaseAuth.instance.currentUser().then((user) {
+
+  //   // });
+  //   Firestore.instance
+  //       .collection('reports')
+  //       .where('user_id', isEqualTo: widget.userId)
+  //       .where('history', isGreaterThanOrEqualTo: _start)
+  //       .where('history', isLessThanOrEqualTo: _end)
+  //       .snapshots()
+  //       .listen((snapshot) {
+  //     List listOrderItem = snapshot.documents.fold(
+  //       null,
+  //         (previousValue, element) =>
+  //             previousValue.add(data['order_item']));
+  //     // _totalOriginalPrice = snapshot.documents
+  //     //     .fold(0, (tot, doc) => tot + doc.data['order_item']['originalPrice']);
+  //     print(listOrderItem);
+  //   });
+  // }
+
 }

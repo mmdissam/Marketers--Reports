@@ -84,35 +84,35 @@ class _CartState extends State<Cart> {
     );
   }
 
-  double calcSellingPrice() {
-    double totalSellingPrice = 0;
+  int calcSellingPrice() {
+    int totalSellingPrice = 0;
     for (var item in widget.listOrder) {
       totalSellingPrice += item.sellingPrice;
     }
     return totalSellingPrice;
   }
 
-  double calcOriginalPrice() {
-    double totalOriginalPrice = 0;
+  int calcOriginalPrice() {
+    int totalOriginalPrice = 0;
     for (var item in widget.listOrder) {
       totalOriginalPrice += item.originalPrice;
     }
     return totalOriginalPrice;
   }
 
-  double calcWholesalePrice() {
-    double totalWholesalePrice = 0;
+  int calcWholesalePrice() {
+    int totalWholesalePrice = 0;
     for (var item in widget.listOrder) {
       totalWholesalePrice += item.wholesalePrice;
     }
     return totalWholesalePrice;
   }
 
-  double calcTotalNetProfit() {
+  int calcTotalNetProfit() {
     return calcSellingPrice() - calcWholesalePrice();
   }
 
-  double calcNetProfit(int position) {
+  int calcNetProfit(int position) {
     return (widget.listOrder[position].sellingPrice -
         widget.listOrder[position].wholesalePrice);
   }

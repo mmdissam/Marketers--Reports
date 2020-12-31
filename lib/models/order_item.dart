@@ -1,10 +1,11 @@
 class OrderItem {
   String productName;
-  double quantity;
-  double originalPrice;
-  double wholesalePrice;
-  double sellingPrice;
-  double deliveryPrice;
+  int quantity;
+  int originalPrice;
+  int wholesalePrice;
+  int sellingPrice;
+  int deliveryPrice;
+  String comments;
 
   OrderItem(
     this.productName,
@@ -13,6 +14,7 @@ class OrderItem {
     this.wholesalePrice,
     this.sellingPrice,
     this.deliveryPrice,
+    this.comments,
   );
 
   OrderItem.fromJson(Map<String, dynamic> map) {
@@ -22,6 +24,7 @@ class OrderItem {
     this.wholesalePrice = map['wholesalePrice'];
     this.deliveryPrice = map['deliveryPrice'];
     this.sellingPrice = map['sellingPrice'];
+    this.comments = map['comments'];
   }
 
   Map<String, dynamic> toMap() {
@@ -32,6 +35,7 @@ class OrderItem {
       'wholesalePrice': this.wholesalePrice,
       'deliveryPrice': this.deliveryPrice,
       'sellingPrice': this.sellingPrice,
+      'comments': this.comments,
     };
   }
 }

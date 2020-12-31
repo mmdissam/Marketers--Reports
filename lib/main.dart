@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:marketers_reports/auth/home_login.dart';
-import 'package:marketers_reports/reports/home_screen.dart';
+import 'package:marketers_reports/reports/marketers_screen.dart';
 import 'package:marketers_reports/reports/new_report.dart';
 
 void main() async {
